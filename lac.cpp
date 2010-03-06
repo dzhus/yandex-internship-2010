@@ -159,7 +159,8 @@ public:
         small_int lac = find_lac(v1, v2) - 1;
         /// @internal We can save one call if we calculate one of
         /// distance while finding LAC.
-        return dist_to_ancestor(v1, lac) +
+        return (v1 == v2) ? 0 : 
+            dist_to_ancestor(v1, lac) +
             dist_to_ancestor(v2, lac);
     }
 };

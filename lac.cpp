@@ -76,8 +76,6 @@ private:
         return anc[v1][0];
     }
 
-    friend void matrix_resize(matrix, small_int, small_int);
-
 public:
     Tree(small_int n)
     {

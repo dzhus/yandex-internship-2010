@@ -98,8 +98,8 @@ public:
         levels = ceil(log(size) / log(2));
 
         matrix_resize<matrix>(&m, n, n);
-        matrix_resize<matrix>(&anc, n, levels);
-        matrix_resize<lmatrix>(&dist, n, levels);
+        matrix_resize<matrix>(&anc, n, levels || 1);
+        matrix_resize<lmatrix>(&dist, n, levels || 1);
         
         in_times.resize(n, 0);
         out_times.resize(n, 0);

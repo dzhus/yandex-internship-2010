@@ -49,7 +49,7 @@ private:
     small_int in_timer, out_timer;
 
     /// DFS visit markers
-    vector<char> visited;
+    brow visited;
 
     /// 2^j-th ancestors of each node.
     matrix anc;

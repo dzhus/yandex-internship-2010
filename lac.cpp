@@ -139,6 +139,8 @@ public:
     distance_int find_distance(small_int v1, small_int v2)
     {
         small_int lac = find_lac(v1, v2) - 1;
+        /// @internal We can save one call if we calculate one of
+        /// distance while finding LAC.
         return dist_to_ancestor(v1, lac) +
             dist_to_ancestor(v2, lac);
     }

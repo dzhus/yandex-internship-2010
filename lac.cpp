@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include <vector>
 
 using namespace std;
@@ -8,11 +9,23 @@ typedef unsigned short int small_int;
 
 typedef vector <small_int> row;
 typedef vector <row> matrix;
+typedef vector <vector <unsigned long int> > lmatrix;
+
+template <class M> void matrix_resize(M* m, small_int rows, small_int cols)
+{
+    m->resize(rows);
+    for (typename M::iterator i = m->begin(); i != m->end(); i++)
+        i->resize(cols, 0);
+}
 
 class Tree
 {
 private:
+    /// Vertex count
     small_int size;
+
+    /// Binary logarithm of size (rounded up)
+    small_int levels;
 
     /// Distance matrix.
     /// 
@@ -26,39 +39,62 @@ private:
     small_int in_timer, out_timer;
 
     /// 2^j-th ancestors of each node and distances to ancestors.
-    matrix ancestors;
-    vector <vector <unsigned long int> > distances;
+    matrix anc;
+    lmatrix dist;
 
-    void dfs_traverse(small_int v)
+    /// Traverse into v with p as parent
+    void dfs_traverse(small_int v, small_int p = 0)
     {
         in_times[v] = in_timer++;
         
+        anc[v][0] = p;
+        dist[v][0] = m[p][v];
+
+        for (small_int j = 1; j < levels; j++)
+        {
+            anc[v][j] = anc[anc[v][j - 1]][j - 1];
+            dist[v][j] = dist[v][j - 1] + dist[anc[v][j - 1]][j - 1];
+        }
+
         for (small_int i = 0; i < size; i++)
             if (m[v][i])
-                dfs_traverse(i);
+                dfs_traverse(i, v);
 
         out_times[v] = out_timer++;
     }
+    friend void matrix_resize(matrix, small_int, small_int);
 
 public:
     Tree(small_int n)
     {
         size = n;
-        m.resize(n);
-        for (matrix::iterator i = m.begin(); i != m.end(); i++)
-            i->resize(n, 0);
+        levels = ceil(log(size) / log(2));
+
+        matrix_resize<matrix>(&m, n, n);
+        matrix_resize<matrix>(&anc, n, levels);
+        matrix_resize<lmatrix>(&dist, n, levels);
+        
         in_times.resize(n, 0);
         out_times.resize(n, 0);
     }
 
     void print(void)
     {
-        for (matrix::iterator i = m.begin(); i != m.end(); i++)
+        for (matrix::iterator i = anc.begin(); i != anc.end(); i++)
         {
             for (row::iterator e = i->begin(); e != i->end(); e++)
                 cout << *e;
             cout << endl;
         }
+        cout << "%%" << endl;
+        
+        for (lmatrix::iterator i = dist.begin(); i != dist.end(); i++)
+        {
+            for (vector<unsigned long int>::iterator e = i->begin(); e != i->end(); e++)
+                cout << *e;
+            cout << endl;
+        }
+
     }
 
     /// Add edge from v1 to v2 with given length (1-based indexing)
@@ -94,8 +130,8 @@ int main(int argc, char* argv[])
         cin >> a >> b >> length;
         tree->add_edge(a, b, length);
     }
-    tree->print();
     tree->lac_preprocess();
+    tree->print();
     
     cin >> pairs;
     

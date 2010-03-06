@@ -46,9 +46,9 @@ public:
         size = n;
         m.resize(n);
         for (matrix::iterator i = m.begin(); i != m.end(); i++)
-            i->resize(n);
-        in_times.resize(n);
-        out_times.resize(n);
+            i->resize(n, 0);
+        in_times.resize(n, 0);
+        out_times.resize(n, 0);
     }
 
     void print(void)

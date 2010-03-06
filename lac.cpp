@@ -76,6 +76,18 @@ private:
         return anc[v1][0];
     }
 
+    distance_int dist_to_ancestor(small_int v, small_int a)
+    {
+        distance_int r = 0;
+        for (int j = levels; j >= 0; j--)
+            if (is_ancestor(a, anc[v][j]))
+            {
+                r += dist[v][j];
+                v = anc[v][j];
+            }
+        return r + dist[v][0];
+    }
+
 public:
     Tree(small_int n)
     {
@@ -88,25 +100,6 @@ public:
         
         in_times.resize(n, 0);
         out_times.resize(n, 0);
-    }
-
-    void print(void)
-    {
-        for (matrix::iterator i = anc.begin(); i != anc.end(); i++)
-        {
-            for (row::iterator e = i->begin(); e != i->end(); e++)
-                cout << *e;
-            cout << endl;
-        }
-        cout << "%%" << endl;
-        
-        for (lmatrix::iterator i = dist.begin(); i != dist.end(); i++)
-        {
-            for (vector<distance_int>::iterator e = i->begin(); e != i->end(); e++)
-                cout << *e;
-            cout << endl;
-        }
-
     }
 
     /// Add edge from v1 to v2 with given length
@@ -124,10 +117,12 @@ public:
     /// Return true if v1 is ancestor of v2 (1-based indexing)
     bool is_ancestor(small_int v1, small_int v2)
     {
+        cout << v1 << "vs" << v2 << endl;
         return (in_times[v1] < in_times[v2]) && 
             (out_times[v1] > out_times[v2]);
     }
 
+    /// Find LAC of two vertices
     small_int find_lac(small_int v1, small_int v2)
     {
         small_int v;
@@ -140,7 +135,13 @@ public:
         return v + 1;
     }
 
-    
+    /// Find distance between two vertices
+    distance_int find_distance(small_int v1, small_int v2)
+    {
+        small_int lac = find_lac(v1, v2) - 1;
+        return dist_to_ancestor(v1, lac) +
+            dist_to_ancestor(v2, lac);
+    }
 };
 
 int main(int argc, char* argv[])
@@ -163,7 +164,7 @@ int main(int argc, char* argv[])
     for (small_int i = 0; i < pairs; i++)
     {
         cin >> a >> b;
-        cout << tree->find_lac(a - 1, b - 1) << endl;
+        cout << tree->find_distance(a - 1, b - 1) << endl;
     }
 
     delete tree;

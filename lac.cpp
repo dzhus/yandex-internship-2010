@@ -9,7 +9,9 @@ typedef unsigned short int small_int;
 
 typedef vector <small_int> row;
 typedef vector <row> matrix;
-typedef vector <vector <unsigned long int> > lmatrix;
+
+typedef unsigned long int distance_int;
+typedef vector <vector <distance_int> > lmatrix;
 
 template <class M> void matrix_resize(M* m, small_int rows, small_int cols)
 {
@@ -102,7 +104,7 @@ public:
         
         for (lmatrix::iterator i = dist.begin(); i != dist.end(); i++)
         {
-            for (vector<unsigned long int>::iterator e = i->begin(); e != i->end(); e++)
+            for (vector<distance_int>::iterator e = i->begin(); e != i->end(); e++)
                 cout << *e;
             cout << endl;
         }
@@ -139,6 +141,8 @@ public:
             v = lac_proc(v1, v2);
         return v + 1;
     }
+
+    
 };
 
 int main(int argc, char* argv[])

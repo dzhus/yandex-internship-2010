@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <list>
 
 using namespace std;
 
@@ -66,7 +67,7 @@ private:
     small_int levels;
 
     /// Adjacency matrix.
-    SymMatrix<bool> adj;
+    vector< list <small_int> > adj;
 
     /// Distance matrix.
     SymMatrix<small_int> dist;
@@ -101,10 +102,9 @@ private:
             anc_dist[v][j] = anc_dist[v][j - 1] + anc_dist[anc[v][j - 1]][j - 1];
         }
 
-        for (small_int i = 0; i < size; i++)
-            if (adj.get(v, i))
-                if (!visited[i])
-                    dfs_traverse(i, v);
+        for (list<small_int>::iterator i = adj[v].begin(); i != adj[v].end(); i++)
+            if (!visited[*i])
+                dfs_traverse(*i, v);
 
         out_times[v] = out_timer++;
     }
@@ -153,7 +153,8 @@ public:
     void add_edge(small_int v1, small_int v2, small_int length)
     {
         dist.set(v1, v2, length);
-        adj.set(v1, v2, 1);
+        adj[v1].push_back(v2);
+        adj[v2].push_back(v1);
     }
 
     void lac_preprocess(void)

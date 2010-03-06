@@ -83,7 +83,7 @@ private:
 
     small_int lac_proc(small_int v1, small_int v2)
     {
-        for (int j = levels; j >= 0; j--)
+        for (int j = levels - 1; j >= 0; j--)
             if (!is_ancestor(anc[v1][j], v2))
                 v1 = anc[v1][j];
         return anc[v1][0];
@@ -95,7 +95,7 @@ private:
         if (v == a)
             return 0;
         
-        for (int j = levels; j >= 0; j--)
+        for (int j = levels - 1; j >= 0; j--)
             if (is_ancestor(a, anc[v][j]))
             {
                 r += anc_dist[v][j];

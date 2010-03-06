@@ -7,6 +7,9 @@ using namespace std;
 /// Fit 40000 in 2 bytes
 typedef unsigned short int small_int;
 
+typedef vector <bool> brow;
+typedef vector <brow> bmatrix;
+
 typedef vector <small_int> row;
 typedef vector <row> matrix;
 
@@ -29,41 +32,51 @@ private:
     /// Binary logarithm of size (rounded up)
     small_int levels;
 
+    /// Adjacency matrix.
+    bmatrix adj;
+
     /// Distance matrix.
     /// 
     /// @internal If tree nodes are numbered from top to bottom, an
     /// upper triangular matrix can be used instead (saves nearly 50%
     /// of memory).
-    matrix m;
+    matrix dist;
     
     /// Node visit times after full DFS.
     row in_times, out_times;
+
+    /// DFS timers
     small_int in_timer, out_timer;
+
+    /// DFS visit markers
+    vector<char> visited;
 
     /// 2^j-th ancestors of each node.
     matrix anc;
 
     /// Distances to 2^j-th ancestors of each node. We use long
     /// integers here to fit maximum value of 40000×39999.
-    lmatrix dist;
+    lmatrix anc_dist;
 
     /// Traverse into v with p as parent
     void dfs_traverse(small_int v, small_int p = 0)
     {
+        visited[v] = 1;
         in_times[v] = in_timer++;
         
         anc[v][0] = p;
-        dist[v][0] = m[p][v];
+        anc_dist[v][0] = dist[p][v];
 
         for (small_int j = 1; j < levels; j++)
         {
             anc[v][j] = anc[anc[v][j - 1]][j - 1];
-            dist[v][j] = dist[v][j - 1] + dist[anc[v][j - 1]][j - 1];
+            anc_dist[v][j] = anc_dist[v][j - 1] + anc_dist[anc[v][j - 1]][j - 1];
         }
 
         for (small_int i = 0; i < size; i++)
-            if (m[v][i])
-                dfs_traverse(i, v);
+            if (adj[v][i])
+                if (!visited[i])
+                    dfs_traverse(i, v);
 
         out_times[v] = out_timer++;
     }
@@ -85,10 +98,10 @@ private:
         for (int j = levels; j >= 0; j--)
             if (is_ancestor(a, anc[v][j]))
             {
-                r += dist[v][j];
+                r += anc_dist[v][j];
                 v = anc[v][j];
             }
-        return r + dist[v][0];
+        return r + anc_dist[v][0];
     }
 
 public:
@@ -97,18 +110,21 @@ public:
         size = n;
         levels = ceil(log(size) / log(2));
 
-        matrix_resize<matrix>(&m, n, n);
+        matrix_resize<matrix>(&dist, n, n);
+        matrix_resize<bmatrix>(&adj, n, n);
         matrix_resize<matrix>(&anc, n, levels || 1);
-        matrix_resize<lmatrix>(&dist, n, levels || 1);
+        matrix_resize<lmatrix>(&anc_dist, n, levels || 1);
         
         in_times.resize(n, 0);
         out_times.resize(n, 0);
+        visited.resize(n, 0);
     }
 
     /// Add edge from v1 to v2 with given length
     void add_edge(small_int v1, small_int v2, small_int length)
     {
-        m[v1][v2] = length;
+        dist[v1][v2] = dist[v2][v1] = length;
+        adj[v1][v2] = adj[v2][v1] = 1;
     }
 
     void lac_preprocess(void)
@@ -161,8 +177,8 @@ int main(int argc, char* argv[])
         cin >> a >> b >> length;
         tree->add_edge(a - 1, b - 1, length);
     }
+
     tree->lac_preprocess();
-    
     cin >> pairs;
     
     for (small_int i = 0; i < pairs; i++)

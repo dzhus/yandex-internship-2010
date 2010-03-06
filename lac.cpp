@@ -8,13 +8,10 @@ using namespace std;
 typedef unsigned short int small_int;
 
 typedef vector <bool> brow;
-typedef vector <brow> bmatrix;
-
 typedef vector <small_int> row;
-typedef vector <row> matrix;
 
+/// We use long integers here to fit maximum value of 40000×39999.
 typedef unsigned long int distance_int;
-typedef vector <vector <distance_int> > lmatrix;
 
 template <class M> void matrix_resize(M* m, small_int rows, small_int cols)
 {
@@ -23,8 +20,44 @@ template <class M> void matrix_resize(M* m, small_int rows, small_int cols)
         i->resize(cols, 0);
 }
 
+
+/// Symmetric matrix (takes (N^2 + N)/2 space)
+template <class T>
+class SymMatrix
+{
+    typedef vector<T> row_t;
+    typedef vector<row_t> matrix_t;
+
+private:
+    matrix_t m;
+
+public:
+    void resize(int size)
+    {
+        m.resize(size);
+        for (int i = 0; i < size; i++)
+            m[i].resize(size - i, 0);
+    }
+
+    T get(int i, int j)
+    {
+        return (i <= j) ? m[i][j - i] : m[j][i - j];
+    }
+
+    void set(int i, int j, T v)
+    {
+        if (i <= j)
+            m[i][j - i] = v;
+        else
+            m[j][i - j] = v;
+    }
+};
+
 class Tree
 {
+    typedef vector < vector <small_int> > anc_t;
+    typedef vector < vector <distance_int> > anc_dist_t;
+
 private:
     /// Vertex count
     small_int size;
@@ -33,30 +66,25 @@ private:
     small_int levels;
 
     /// Adjacency matrix.
-    bmatrix adj;
+    SymMatrix<bool> adj;
 
     /// Distance matrix.
-    /// 
-    /// @internal If tree nodes are numbered from top to bottom, an
-    /// upper triangular matrix can be used instead (saves nearly 50%
-    /// of memory).
-    matrix dist;
+    SymMatrix<small_int> dist;
     
     /// Node visit times after full DFS.
-    row in_times, out_times;
+    vector<small_int> in_times, out_times;
 
     /// DFS timers
     small_int in_timer, out_timer;
 
     /// DFS visit markers
-    brow visited;
+    vector<bool> visited;
 
     /// 2^j-th ancestors of each node.
-    matrix anc;
+    anc_t anc;
 
-    /// Distances to 2^j-th ancestors of each node. We use long
-    /// integers here to fit maximum value of 40000×39999.
-    lmatrix anc_dist;
+    /// Distances to 2^j-th ancestors of each node.
+    anc_dist_t anc_dist;
 
     /// Traverse into v with p as parent
     void dfs_traverse(small_int v, small_int p = 0)
@@ -65,7 +93,7 @@ private:
         in_times[v] = in_timer++;
         
         anc[v][0] = p;
-        anc_dist[v][0] = dist[p][v];
+        anc_dist[v][0] = dist.get(p, v);
 
         for (small_int j = 1; j < levels; j++)
         {
@@ -74,7 +102,7 @@ private:
         }
 
         for (small_int i = 0; i < size; i++)
-            if (adj[v][i])
+            if (adj.get(v, i))
                 if (!visited[i])
                     dfs_traverse(i, v);
 
@@ -108,12 +136,13 @@ public:
     Tree(small_int n)
     {
         size = n;
-        levels = (size != 1) ? ceil(log(size) / log(2)) : 1;
+        levels = (n != 1) ? ceil(log(n) / log(2)) : 1;
 
-        matrix_resize<matrix>(&dist, n, n);
-        matrix_resize<bmatrix>(&adj, n, n);
-        matrix_resize<matrix>(&anc, n, levels);
-        matrix_resize<lmatrix>(&anc_dist, n, levels);
+        dist.resize(n);
+        adj.resize(n);
+
+        matrix_resize<anc_t>(&anc, n, levels);
+        matrix_resize<anc_dist_t>(&anc_dist, n, levels);
         
         in_times.resize(n, 0);
         out_times.resize(n, 0);
@@ -123,8 +152,8 @@ public:
     /// Add edge from v1 to v2 with given length
     void add_edge(small_int v1, small_int v2, small_int length)
     {
-        dist[v1][v2] = dist[v2][v1] = length;
-        adj[v1][v2] = adj[v2][v1] = 1;
+        dist.set(v1, v2, length);
+        adj.set(v1, v2, 1);
     }
 
     void lac_preprocess(void)
@@ -169,24 +198,23 @@ public:
 int main(int argc, char* argv[])
 {
     small_int size, a, b, length, pairs;
-    Tree *tree;
 
     cin >> size;
-    tree = new Tree(size);
+    Tree tree(size);
 
     for (small_int i = 0; i < size - 1; i++)
     {
         cin >> a >> b >> length;
-        tree->add_edge(a - 1, b - 1, length);
+        tree.add_edge(a - 1, b - 1, length);
     }
 
-    tree->lac_preprocess();
+    tree.lac_preprocess();
     cin >> pairs;
     
     for (small_int i = 0; i < pairs; i++)
     {
         cin >> a >> b;
-        cout << tree->find_distance(a - 1, b - 1) << endl;
+        cout << tree.find_distance(a - 1, b - 1) << endl;
     }
 
     return 0;

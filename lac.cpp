@@ -120,7 +120,6 @@ public:
     /// Return true if v1 is ancestor of v2 (1-based indexing)
     bool is_ancestor(small_int v1, small_int v2)
     {
-        cout << v1 << "vs" << v2 << endl;
         return (in_times[v1] < in_times[v2]) && 
             (out_times[v1] > out_times[v2]);
     }

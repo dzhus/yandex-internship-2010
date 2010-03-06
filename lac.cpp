@@ -79,6 +79,9 @@ private:
     distance_int dist_to_ancestor(small_int v, small_int a)
     {
         distance_int r = 0;
+        if (v == a)
+            return 0;
+        
         for (int j = levels; j >= 0; j--)
             if (is_ancestor(a, anc[v][j]))
             {

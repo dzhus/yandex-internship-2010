@@ -62,6 +62,15 @@ private:
 
         out_times[v] = out_timer++;
     }
+
+    small_int lac_proc(small_int v1, small_int v2)
+    {
+        for (int j = levels; j >= 0; j--)
+            if (!is_ancestor(anc[v1][j] + 1, v2))
+                v1 = anc[v1][j] + 1;
+        return anc[v1][0];
+    }
+
     friend void matrix_resize(matrix, small_int, small_int);
 
 public:
@@ -112,8 +121,19 @@ public:
     /// Return true if v1 is ancestor of v2 (1-based indexing)
     bool is_ancestor(small_int v1, small_int v2)
     {
+        cout << v1 << " vs " << v2 << endl;
+                        
         return (in_times[v1 - 1] < in_times[v2 - 1]) && 
             (out_times[v1 - 1] > out_times[v2 - 1]);
+    }
+
+    small_int find_lac(small_int v1, small_int v2)
+    {
+        if (is_ancestor(v1, v2))
+            return v1;
+        else if (is_ancestor(v2, v1))
+            return v2;
+        else return lac_proc(v1, v2);
     }
 };
 
@@ -138,7 +158,7 @@ int main(int argc, char* argv[])
     for (small_int i = 0; i < pairs; i++)
     {
         cin >> a >> b;
-        cout << tree->is_ancestor(a, b) << endl;
+        cout << tree->find_lac(a, b) << endl;
     }
 
     delete tree;

@@ -108,12 +108,12 @@ public:
     Tree(small_int n)
     {
         size = n;
-        levels = ceil(log(size) / log(2));
+        levels = (size != 1) ? ceil(log(size) / log(2)) : 1;
 
         matrix_resize<matrix>(&dist, n, n);
         matrix_resize<bmatrix>(&adj, n, n);
-        matrix_resize<matrix>(&anc, n, levels || 1);
-        matrix_resize<lmatrix>(&anc_dist, n, levels || 1);
+        matrix_resize<matrix>(&anc, n, levels);
+        matrix_resize<lmatrix>(&anc_dist, n, levels);
         
         in_times.resize(n, 0);
         out_times.resize(n, 0);
@@ -163,6 +163,7 @@ public:
             dist_to_ancestor(v1, lac) +
             dist_to_ancestor(v2, lac);
     }
+ 
 };
 
 int main(int argc, char* argv[])
@@ -188,6 +189,5 @@ int main(int argc, char* argv[])
         cout << tree->find_distance(a - 1, b - 1) << endl;
     }
 
-    delete tree;
     return 0;
 }

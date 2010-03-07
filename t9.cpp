@@ -35,12 +35,12 @@ string get_full_key(const string& s)
 /// Word with frequency
 class Word
 {
+public:
     string str;
     small_int frequency;
-public:
-    Word(string &s, small_int &freq)
+    Word(const string &s, const small_int &freq)
     {
-        str = s;
+        str = string(s);
         frequency = freq;
     }
 };
@@ -64,7 +64,7 @@ public:
     }
 
     /// Add word contents with given full key and frequency
-    void add_word(string &full_key, string &contents, small_int &freq)
+    void add_word(string &full_key, const string &contents, const small_int &freq)
     {
         vector<Trie*>::size_type key = (full_key[0] - '2');
         if (!full_key.length())
@@ -75,6 +75,18 @@ public:
             if (children[key] == NULL)
                 children[key] = new Trie();
             children[key]->add_word(full_key, contents, freq);
+        }
+    }
+
+    const list<Word>& query(string &full_key)
+    {
+        vector<Trie*>::size_type key = (full_key[0] - '2');
+        if (!full_key.length())
+            return words;
+        else
+        {
+            full_key.erase(0, 1);
+            return children[key]->query(full_key);
         }
     }
 };
@@ -91,10 +103,11 @@ int main(int argc, char* argv[])
     for (int i = 0; i < dict_size; i++)
     {
         cin >> word >> freq;
-        cout << get_full_key(word) << endl;
         full_key = get_full_key(word);
         tr.add_word(full_key, word, freq);
     }
+    cin >> full_key;
+    cout << tr.query(full_key).front().str << endl;
 
     return 0;
 }

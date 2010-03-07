@@ -256,7 +256,7 @@ public:
                     skips++;
                 else if (*i == '1')
                 {
-                    if (!prev_space)
+                    if (full_key.length())
                         put_current_word();
                     full_key = "1";
                     word_put = false;

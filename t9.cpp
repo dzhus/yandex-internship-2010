@@ -1,11 +1,14 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
 #include <list>
 #include <vector>
 
 using namespace std;
 
 typedef unsigned short int small_int;
+
+const small_int bufsize = 20000;
 
 /// Mapping of characters to digital keys
 string char_keys[26] = {"2", "2", "2",
@@ -17,11 +20,14 @@ string char_keys[26] = {"2", "2", "2",
                         "8", "8", "8",
                         "9", "9", "9", "9"};
 
+/// Return digit corresponding to given character
 const string& get_key(const char& c)
 {
     return char_keys[c - 'a'];
 }
 
+/// Return full key (a string of digits from 2 to 9) for any
+/// given word
 string get_full_key(const string& s)
 {
     string res;
@@ -37,27 +43,74 @@ class Word
 {
     string str;
     small_int frequency;
-    
+
+    /// Word frequency must be increased by 1 after each use only if
+    /// this is true
+    bool bumpable;
+
 public:
     Word()
     {}
     
-    Word(const string &s, const small_int &freq)
-    {
-        str = s;
-        frequency = freq;
-    }
+    Word(const string &s, const small_int &freq, const bool &b = true)
+        :str(s), frequency(freq), bumpable(b)
+    {}
 
     void send(ostream &out)
     {
         out << str;
-    }    
+    }
+
+    void bump(void)
+    {
+        frequency++;
+    }
+    
+    const bool& is_bumpable(void) const
+    {
+        return bumpable;
+    }
+
+    const small_int& get_frequency(void) const
+    {
+        return frequency;
+    }
 };
 
 ostream& operator <<(ostream &out, Word &w)
 {
     w.send(out);
     return out;
+}
+
+/// If front is true, predicate is true for words with lower (or
+/// equal) frequency. Otherwise, predicate gives truth for 
+class WordFreqPred
+{
+private:
+    small_int frequency;
+    bool front;
+public:
+    WordFreqPred(int freq, bool f)
+        :frequency(freq), front(f)
+    {}
+
+    bool operator() (Word &w) const
+    {
+        return (w.get_frequency() <= (frequency - (!front ? 1 : 0)));
+    }
+};
+
+/// Insert new word into word list wrt frequency
+///
+/// If bump is false, word is inserted after all words with the same
+/// frequency. Otherwise, word is put in front of all equifrequent
+/// words.
+list<Word>::iterator insert_word(list<Word> &l, const Word &w, bool bump = false)
+{
+    list<Word>::iterator i;
+    i = find_if(l.begin(), l.end(), WordFreqPred(w.get_frequency(), bump));
+    return l.insert(i, w);
 }
 
 class Trie
@@ -69,25 +122,27 @@ private:
     /// Children tries
     vector<Trie*> children;
     
-    /// Add word contents with given full key and frequency
-    void add_word_proc(string &full_key, const string &contents, const small_int &freq)
+    /// Add word object under given full key
+    void add_word_proc(string &full_key, const Word &w)
     {
         vector<Trie*>::size_type key = (full_key[0] - '1');
         if (!full_key.length())
-            words.push_back(Word(contents, freq));
+        {
+            insert_word(words, w);
+        }
         else
         {
             full_key.erase(0, 1);
             if (children[key] == NULL)
                 children[key] = new Trie();
-            children[key]->add_word_proc(full_key, contents, freq);
+            children[key]->add_word_proc(full_key, w);
         }
     }
 
     /// Get list of words stored in trie under given full key. We
     /// assume that all used words are present in the trie, so this
     /// always succeeds.
-    const list<Word>& get_leaf(string &full_key)
+    list<Word>& get_leaf(string &full_key)
     {
         vector<Trie*>::size_type key = (full_key[0] - '1');
         if (!full_key.length())
@@ -117,28 +172,35 @@ public:
     void add_word(const string &contents, const small_int &freq)
     {
         string fk = get_full_key(contents);
-        add_word_proc(fk, contents, freq);
+        add_word_proc(fk, Word(contents, freq));
     }
 
     /// Add new punctuation mark under 1
     void add_punctuation(const string &punct)
     {
         string fk = "1";
-        add_word_proc(fk, punct, 1);
+        add_word_proc(fk, Word(punct, 1, false));
     }
 
     /// Get n-th word stored in trie under given full key.
     const Word& query(string &full_key, int n = 0)
     {
-        cout << n;
-        const list<Word>& leaf = get_leaf(full_key);
-
+        list<Word>& leaf = get_leaf(full_key);
         /// @internal We assume that leaf.length() > n
-        list<Word>::const_iterator i = leaf.begin();
+        list<Word>::iterator i = leaf.begin();
         int j = 0;
         while (j < n)
             i++, j++;
-        
+
+        /// Bump frequency and reinsert word if needed
+        if ((*i).is_bumpable())
+        {
+            Word w = Word(*i);
+            w.bump();
+            leaf.erase(i);
+            i = insert_word(leaf, w, true);
+        }
+
         return *i;
     }
 };
@@ -196,6 +258,7 @@ public:
                 {
                     put_current_word();
                     full_key = "1";
+                    word_put = false;
                 }
             }
         }
@@ -211,7 +274,7 @@ int main(int argc, char* argv[])
     small_int freq;
     Trie tr;
     T9Reader t9 = T9Reader(&tr);
-    string buf;
+    char buf[bufsize];
 
     cin >> dict_size;
 
@@ -226,7 +289,8 @@ int main(int argc, char* argv[])
         tr.add_word(dict_word, freq);
     }
 
-    buf = "2281 228*1* 228**";
+    cin.ignore(1);
+    cin.getline(buf, bufsize);
     t9.read(buf);
     
     return 0;

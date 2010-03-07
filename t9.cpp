@@ -72,7 +72,7 @@ private:
     /// Add word contents with given full key and frequency
     void add_word_proc(string &full_key, const string &contents, const small_int &freq)
     {
-        vector<Trie*>::size_type key = (full_key[0] - '2');
+        vector<Trie*>::size_type key = (full_key[0] - '1');
         if (!full_key.length())
             words.push_back(Word(contents, freq));
         else
@@ -89,7 +89,7 @@ private:
     /// always succeeds.
     const list<Word>& get_leaf(string &full_key)
     {
-        vector<Trie*>::size_type key = (full_key[0] - '2');
+        vector<Trie*>::size_type key = (full_key[0] - '1');
         if (!full_key.length())
             return words;
         else
@@ -101,9 +101,9 @@ private:
 public:
     Trie(void)
     {
-        /// Preallocate vector for 8 (from 2 to 9) children which may
+        /// Preallocate vector for 9 (from 1 to 9) children which may
         /// be added later
-        children.resize(8, NULL);
+        children.resize(9, NULL);
     }
 
     ~Trie(void)
@@ -113,16 +113,24 @@ public:
                 delete *i;
     }
 
-    /// @internal Public wrapper for add_word_proc
+    /// Public wrapper for add_word_proc
     void add_word(const string &contents, const small_int &freq)
     {
         string fk = get_full_key(contents);
         add_word_proc(fk, contents, freq);
     }
 
+    /// Add new punctuation mark under 1
+    void add_punctuation(const string &punct)
+    {
+        string fk = "1";
+        add_word_proc(fk, punct, 1);
+    }
+
     /// Get n-th word stored in trie under given full key.
     const Word& query(string &full_key, int n = 0)
     {
+        cout << n;
         const list<Word>& leaf = get_leaf(full_key);
 
         /// @internal We assume that leaf.length() > n
@@ -153,6 +161,7 @@ public:
         skips = 0;
     }
 
+    /// Print word selected so far
     void put_current_word(void)
     {
         trie_word = trie->query(full_key, skips);
@@ -206,6 +215,10 @@ int main(int argc, char* argv[])
 
     cin >> dict_size;
 
+    tr.add_punctuation(",");
+    tr.add_punctuation(".");
+    tr.add_punctuation("?");
+
     /// Populate trie
     for (int i = 0; i < dict_size; i++)
     {
@@ -213,7 +226,7 @@ int main(int argc, char* argv[])
         tr.add_word(dict_word, freq);
     }
 
-    buf = "228 228* 228***";
+    buf = "2281 228*1* 228**";
     t9.read(buf);
     
     return 0;

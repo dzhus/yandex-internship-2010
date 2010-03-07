@@ -68,9 +68,26 @@ private:
 
     /// Children tries
     vector<Trie*> children;
+    
+    /// Add word contents with given full key and frequency
+    void add_word_proc(string &full_key, const string &contents, const small_int &freq)
+    {
+        vector<Trie*>::size_type key = (full_key[0] - '2');
+        if (!full_key.length())
+            words.push_back(Word(contents, freq));
+        else
+        {
+            full_key.erase(0, 1);
+            if (children[key] == NULL)
+                children[key] = new Trie();
+            children[key]->add_word_proc(full_key, contents, freq);
+        }
+    }
 public:
     Trie(void)
     {
+        /// Preallocate vector for 8 (from 2 to 9) children which may
+        /// be added later
         children.resize(8, NULL);
     }
 
@@ -81,19 +98,11 @@ public:
                 delete *i;
     }
 
-    /// Add word contents with given full key and frequency
-    void add_word(string &full_key, const string &contents, const small_int &freq)
+    /// @internal Public wrapper for add_word_proc
+    void add_word(const string &contents, const small_int &freq)
     {
-        vector<Trie*>::size_type key = (full_key[0] - '2');
-        if (!full_key.length())
-            words.push_back(Word(contents, freq));
-        else
-        {
-            full_key.erase(0, 1);
-            if (children[key] == NULL)
-                children[key] = new Trie();
-            children[key]->add_word(full_key, contents, freq);
-        }
+        string fk = get_full_key(contents);
+        add_word_proc(fk, contents, freq);
     }
 
     /// Get list of words stored in trie under given full key. We
@@ -126,8 +135,7 @@ int main(int argc, char* argv[])
     for (int i = 0; i < dict_size; i++)
     {
         cin >> word >> freq;
-        full_key = get_full_key(word);
-        tr.add_word(full_key, word, freq);
+        tr.add_word(word, freq);
     }
 
     cin >> full_key;

@@ -53,13 +53,14 @@ private:
 public:
     Trie(void)
     {
-        children.resize(9, NULL);
+        children.resize(8, NULL);
+    }
     }
 
     /// Add word contents with given full key and frequency
     void add_word(string &full_key, string &contents, small_int &freq)
     {
-        int key = full_key[0];
+        vector<Trie*>::size_type key = (full_key[0] - '2');
         if (!full_key.length())
             words.push_back(Word(contents, freq));
         else
@@ -77,7 +78,7 @@ int main(int argc, char* argv[])
     int dict_size;
     small_int freq;
     Trie tr;
-    string word;
+    string word, full_key;
 
     cin >> dict_size;
 
@@ -85,6 +86,8 @@ int main(int argc, char* argv[])
     {
         cin >> word >> freq;
         cout << get_full_key(word) << endl;
+        full_key = get_full_key(word);
+        tr.add_word(full_key, word, freq);
     }
 
     return 0;

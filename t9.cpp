@@ -84,7 +84,8 @@ ostream& operator <<(ostream &out, Word &w)
 }
 
 /// If front is true, predicate is true for words with lower (or
-/// equal) frequency. Otherwise, predicate gives truth for 
+/// equal) frequency. Otherwise, predicate gives truth if words have
+/// higher frequency.
 class WordFreqPred
 {
 private:

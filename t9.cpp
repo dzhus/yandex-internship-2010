@@ -83,6 +83,21 @@ private:
             children[key]->add_word_proc(full_key, contents, freq);
         }
     }
+
+    /// Get list of words stored in trie under given full key. We
+    /// assume that all used words are present in the trie, so this
+    /// always succeeds.
+    const list<Word>& get_leaf(string &full_key)
+    {
+        vector<Trie*>::size_type key = (full_key[0] - '2');
+        if (!full_key.length())
+            return words;
+        else
+        {
+            full_key.erase(0, 1);
+            return children[key]->get_leaf(full_key);
+        }
+    }
 public:
     Trie(void)
     {
@@ -105,42 +120,94 @@ public:
         add_word_proc(fk, contents, freq);
     }
 
-    /// Get list of words stored in trie under given full key. We
-    /// assume that all used words are present in the trie, so this
-    /// always succeeds.
-    const list<Word>& query(string &full_key)
+    /// Get n-th word stored in trie under given full key.
+    const Word& query(string &full_key, int n = 0)
     {
-        vector<Trie*>::size_type key = (full_key[0] - '2');
-        if (!full_key.length())
-            return words;
-        else
+        const list<Word>& leaf = get_leaf(full_key);
+        return leaf.front();
+    }
+};
+
+class T9Reader
+{
+private:
+    string full_key;
+    bool prev_space, word_put;
+    int skips;
+    Word trie_word;
+    Trie *trie;
+public:
+    T9Reader(Trie *t)
+    {
+        trie = t;
+        full_key = "";
+        word_put = false;
+        prev_space = false;
+        skips = 0;
+    }
+
+    void put_current_word(void)
+    {
+        trie_word = trie->query(full_key, skips);
+        cout << trie_word;
+        full_key.clear();
+        skips = 0;
+        word_put = true;
+    }
+
+    void read(const string &input)
+    {
+        for (string::const_iterator i = input.begin(); i != input.end(); i++)
         {
-            full_key.erase(0, 1);
-            return children[key]->query(full_key);
+            if (*i == ' ')
+            {
+                if (!prev_space)
+                    put_current_word();
+                prev_space = true;
+                cout << ' ';
+            }
+            else
+            {
+                prev_space = false;
+                if ((*i >= '2') && (*i <= '9'))
+                {
+                    full_key += *i;
+                    word_put = false;
+                }
+                else if (*i == '*')
+                    skips++;
+                else if (*i == '1')
+                {
+                    put_current_word();
+                    full_key = "1";
+                }
+            }
         }
+        if (!word_put)
+            put_current_word();
     }
 };
 
 int main(int argc, char* argv[])
 {
     int dict_size;
+    string dict_word;
     small_int freq;
     Trie tr;
-    string word, full_key;
-    Word w;
+    T9Reader t9 = T9Reader(&tr);
+    string buf;
 
     cin >> dict_size;
 
     /// Populate trie
     for (int i = 0; i < dict_size; i++)
     {
-        cin >> word >> freq;
-        tr.add_word(word, freq);
+        cin >> dict_word >> freq;
+        tr.add_word(dict_word, freq);
     }
 
-    cin >> full_key;
-    w = tr.query(full_key).front();
-    cout << w;
-
+    buf = "668 668 668";
+    t9.read(buf);
+    
     return 0;
 }

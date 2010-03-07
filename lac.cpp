@@ -21,39 +21,6 @@ template <class M> void matrix_resize(M* m, small_int rows, small_int cols)
         i->resize(cols, 0);
 }
 
-
-/// Symmetric matrix (takes (N^2 + N)/2 space)
-template <class T>
-class SymMatrix
-{
-    typedef vector<T> row_t;
-    typedef vector<row_t> matrix_t;
-
-private:
-    matrix_t m;
-
-public:
-    void resize(int size)
-    {
-        m.resize(size);
-        for (int i = 0; i < size; i++)
-            m[i].resize(size - i, 0);
-    }
-
-    T get(int i, int j)
-    {
-        return (i <= j) ? m[i][j - i] : m[j][i - j];
-    }
-
-    void set(int i, int j, T v)
-    {
-        if (i <= j)
-            m[i][j - i] = v;
-        else
-            m[j][i - j] = v;
-    }
-};
-
 class Tree
 {
     typedef vector < vector <small_int> > anc_t;
@@ -66,11 +33,12 @@ private:
     /// Binary logarithm of size (rounded up)
     small_int levels;
 
-    /// Adjacency matrix.
+    /// Adjacency matrix. Our trees have sparse matrices, thus we use
+    /// vectors of lists.
     vector< list <small_int> > adj;
 
     /// Distance matrix.
-    SymMatrix<small_int> dist;
+    vector< list <small_int> > dist;
     
     /// Node visit times after full DFS.
     vector<small_int> in_times, out_times;
@@ -88,13 +56,13 @@ private:
     anc_dist_t anc_dist;
 
     /// Traverse into v with p as parent
-    void dfs_traverse(small_int v, small_int p = 0)
+    void dfs_traverse(small_int v, small_int p = 0, small_int p_dist = 0)
     {
         visited[v] = 1;
         in_times[v] = in_timer++;
         
         anc[v][0] = p;
-        anc_dist[v][0] = dist.get(p, v);
+        anc_dist[v][0] = p_dist;
 
         for (small_int j = 1; j < levels; j++)
         {
@@ -102,9 +70,15 @@ private:
             anc_dist[v][j] = anc_dist[v][j - 1] + anc_dist[anc[v][j - 1]][j - 1];
         }
 
-        for (list<small_int>::iterator i = adj[v].begin(); i != adj[v].end(); i++)
+        /// Traverse adjacency and distance lists. This works provided
+        /// that adjacency relations and edge lengths are added with
+        /// add_edge which maintains proper order.
+        for (list<small_int>::iterator 
+                 i = adj[v].begin(), 
+                 d = dist[v].begin(); 
+             i != adj[v].end(); i++, d++)
             if (!visited[*i])
-                dfs_traverse(*i, v);
+                dfs_traverse(*i, v, *d);
 
         out_times[v] = out_timer++;
     }
@@ -152,7 +126,8 @@ public:
     /// Add edge from v1 to v2 with given length
     void add_edge(small_int v1, small_int v2, small_int length)
     {
-        dist.set(v1, v2, length);
+        dist[v1].push_back(length);
+        dist[v2].push_back(length);
         adj[v1].push_back(v2);
         adj[v2].push_back(v1);
     }

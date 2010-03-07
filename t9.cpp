@@ -55,6 +55,12 @@ public:
     {
         children.resize(8, NULL);
     }
+
+    ~Trie(void)
+    {
+        for (vector<Trie*>::iterator i = children.begin(); i != children.end(); i++)
+            if (*i != NULL)
+                delete *i;
     }
 
     /// Add word contents with given full key and frequency

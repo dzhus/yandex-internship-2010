@@ -214,12 +214,20 @@ private:
     int skips;
     Word trie_word;
     Trie *trie;
+
+    /// If word selected so far has not been printed yet, do it
+    void put_pending(void)
+    {
+        if (!word_put)
+            put_current_word();
+    }
+
 public:
     T9Reader(Trie *t)
     {
         trie = t;
         full_key = "";
-        word_put = false;
+        word_put = true;
         prev_space = false;
         skips = 0;
     }
@@ -233,20 +241,19 @@ public:
         skips = 0;
         word_put = true;
     }
-
+    
     void read(const string &input)
     {
         for (string::const_iterator i = input.begin(); i != input.end(); i++)
         {
             if (*i == ' ')
             {
-                if (!prev_space)
-                    put_current_word();
-                prev_space = true;
+                put_pending();
                 cout << ' ';
             }
             else
             {
+                /// Next character in word key
                 if ((*i >= '2') && (*i <= '9'))
                 {
                     full_key += *i;
@@ -254,18 +261,16 @@ public:
                 }
                 else if (*i == '*')
                     skips++;
+                /// Punctuation
                 else if (*i == '1')
                 {
-                    if (full_key.length())
-                        put_current_word();
+                    put_pending();
                     full_key = "1";
                     word_put = false;
                 }
-                prev_space = false;
             }
         }
-        if (!word_put)
-            put_current_word();
+        put_pending();
     }
 };
 

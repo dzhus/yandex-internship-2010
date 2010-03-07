@@ -48,7 +48,10 @@ public:
 class Trie
 {
 private:
+    /// Words stored in root leaf of trie
     list<Word> words;
+
+    /// Children tries
     vector<Trie*> children;
 public:
     Trie(void)
@@ -78,6 +81,9 @@ public:
         }
     }
 
+    /// Get list of words stored in trie under given full key. We
+    /// assume that all used words are present in the trie, so this
+    /// always succeeds.
     const list<Word>& query(string &full_key)
     {
         vector<Trie*>::size_type key = (full_key[0] - '2');
@@ -100,12 +106,14 @@ int main(int argc, char* argv[])
 
     cin >> dict_size;
 
+    /// Populate trie
     for (int i = 0; i < dict_size; i++)
     {
         cin >> word >> freq;
         full_key = get_full_key(word);
         tr.add_word(full_key, word, freq);
     }
+
     cin >> full_key;
     cout << tr.query(full_key).front().str << endl;
 

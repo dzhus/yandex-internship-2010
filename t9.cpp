@@ -8,7 +8,7 @@ using namespace std;
 
 typedef unsigned short int small_int;
 
-const small_int bufsize = 20000;
+const int bufsize = 100000;
 
 /// Mapping of characters to digital keys
 string char_keys[26] = {"2", "2", "2",

@@ -124,7 +124,14 @@ public:
     const Word& query(string &full_key, int n = 0)
     {
         const list<Word>& leaf = get_leaf(full_key);
-        return leaf.front();
+
+        /// @internal We assume that leaf.length() > n
+        list<Word>::const_iterator i = leaf.begin();
+        int j = 0;
+        while (j < n)
+            i++, j++;
+        
+        return *i;
     }
 };
 
@@ -206,7 +213,7 @@ int main(int argc, char* argv[])
         tr.add_word(dict_word, freq);
     }
 
-    buf = "668 668 668";
+    buf = "228 228* 228***";
     t9.read(buf);
     
     return 0;

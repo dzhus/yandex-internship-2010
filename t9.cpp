@@ -35,15 +35,30 @@ string get_full_key(const string& s)
 /// Word with frequency
 class Word
 {
-public:
     string str;
     small_int frequency;
+    
+public:
+    Word()
+    {}
+    
     Word(const string &s, const small_int &freq)
     {
-        str = string(s);
+        str = s;
         frequency = freq;
     }
+
+    void send(ostream &out)
+    {
+        out << str;
+    }    
 };
+
+ostream& operator <<(ostream &out, Word &w)
+{
+    w.send(out);
+    return out;
+}
 
 class Trie
 {
@@ -103,6 +118,7 @@ int main(int argc, char* argv[])
     small_int freq;
     Trie tr;
     string word, full_key;
+    Word w;
 
     cin >> dict_size;
 
@@ -115,7 +131,8 @@ int main(int argc, char* argv[])
     }
 
     cin >> full_key;
-    cout << tr.query(full_key).front().str << endl;
+    w = tr.query(full_key).front();
+    cout << w;
 
     return 0;
 }

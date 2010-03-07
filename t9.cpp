@@ -247,7 +247,6 @@ public:
             }
             else
             {
-                prev_space = false;
                 if ((*i >= '2') && (*i <= '9'))
                 {
                     full_key += *i;
@@ -257,10 +256,12 @@ public:
                     skips++;
                 else if (*i == '1')
                 {
-                    put_current_word();
+                    if (!prev_space)
+                        put_current_word();
                     full_key = "1";
                     word_put = false;
                 }
+                prev_space = false;
             }
         }
         if (!word_put)
@@ -279,8 +280,8 @@ int main(int argc, char* argv[])
 
     cin >> dict_size;
 
-    tr.add_punctuation(",");
     tr.add_punctuation(".");
+    tr.add_punctuation(",");
     tr.add_punctuation("?");
 
     /// Populate trie

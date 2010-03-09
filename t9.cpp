@@ -11,29 +11,25 @@ typedef unsigned short int small_int;
 const int bufsize = 100000;
 
 /// Mapping of characters to digital keys
-string char_keys[26] = {"2", "2", "2",
-                        "3", "3", "3",
-                        "4", "4", "4",
-                        "5", "5", "5",
-                        "6", "6", "6",
-                        "7", "7", "7", "7",
-                        "8", "8", "8",
-                        "9", "9", "9", "9"};
-
-/// Return digit corresponding to given character
-const string& get_key(const char& c)
-{
-    return char_keys[c - 'a'];
-}
+const char char_keys[26] = {'2', '2', '2',
+                            '3', '3', '3',
+                            '4', '4', '4',
+                            '5', '5', '5',
+                            '6', '6', '6',
+                            '7', '7', '7', '7',
+                            '8', '8', '8',
+                            '9', '9', '9', '9'};
 
 /// Return full key (a string of digits from 2 to 9) for any
 /// given word
-string get_full_key(const string& s)
+const string get_full_key(const string& s)
 {
     string res;
+    /// Preallocate full string to save cycles
+    res.resize(s.length());
     
-    for (string::const_iterator i = s.begin(); i != s.end(); i++)
-        res += get_key(*i);
+    for (int i = 0; i != s.length(); i++)
+        res[i] = char_keys[s[i] - 'a'];
 
     return res;
 }
@@ -124,34 +120,32 @@ private:
     vector<Trie*> children;
     
     /// Add word object under given full key
-    void add_word_proc(string &full_key, const Word &w)
+    void add_word_proc(const char *full_key, const Word &w)
     {
         vector<Trie*>::size_type key = (full_key[0] - '1');
-        if (!full_key.length())
+        if (*full_key == '\0')
         {
             insert_word(words, w);
         }
         else
         {
-            full_key.erase(0, 1);
             if (children[key] == NULL)
                 children[key] = new Trie();
-            children[key]->add_word_proc(full_key, w);
+            children[key]->add_word_proc(full_key + 1, w);
         }
     }
 
     /// Get list of words stored in trie under given full key. We
     /// assume that all used words are present in the trie, so this
     /// always succeeds.
-    list<Word>& get_leaf(string &full_key)
+    list<Word>& get_leaf(const char *full_key)
     {
         vector<Trie*>::size_type key = (full_key[0] - '1');
-        if (!full_key.length())
+        if (*full_key == '\0')
             return words;
         else
         {
-            full_key.erase(0, 1);
-            return children[key]->get_leaf(full_key);
+            return children[key]->get_leaf(full_key + 1);
         }
     }
 public:
@@ -173,20 +167,20 @@ public:
     void add_word(const string &contents, const small_int &freq)
     {
         string fk = get_full_key(contents);
-        add_word_proc(fk, Word(contents, freq));
+        add_word_proc(fk.c_str(), Word(contents, freq));
     }
 
     /// Add new punctuation mark under 1
     void add_punctuation(const string &punct)
     {
-        string fk = "1";
+        const char *fk = "1";
         add_word_proc(fk, Word(punct, 1, false));
     }
 
     /// Get n-th word stored in trie under given full key.
     const Word& query(string &full_key, int n = 0)
     {
-        list<Word>& leaf = get_leaf(full_key);
+        list<Word>& leaf = get_leaf(full_key.c_str());
         /// @internal We assume that leaf.length() > n
         list<Word>::iterator i = leaf.begin();
         int j = 0;

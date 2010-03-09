@@ -173,8 +173,7 @@ public:
     /// Add new punctuation mark under 1
     void add_punctuation(const string &punct)
     {
-        const char *fk = "1";
-        add_word_proc(fk, Word(punct, 1, false));
+        add_word_proc("1", Word(punct, 1, false));
     }
 
     /// Get n-th word stored in trie under given full key.

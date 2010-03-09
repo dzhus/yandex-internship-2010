@@ -37,39 +37,31 @@ const string get_full_key(const string& s)
 /// Word with frequency
 class Word
 {
-    string str;
-    small_int frequency;
+public:
+    const string str;
 
     /// Word frequency must be increased by 1 after each use only if
     /// this is true
-    bool bumpable;
+    const bool bumpable;
 
-public:
-    Word()
-    {}
+    const small_int frequency;
     
+    Word()
+        :bumpable(false), frequency(0)
+    {}
+
     Word(const string &s, const small_int &freq, const bool &b = true)
         :str(s), frequency(freq), bumpable(b)
     {}
 
+    void print()
+    {
+        cout << str;
+    }
+
     void send(ostream &out)
     {
         out << str;
-    }
-
-    void bump(void)
-    {
-        frequency++;
-    }
-    
-    const bool& is_bumpable(void) const
-    {
-        return bumpable;
-    }
-
-    const small_int& get_frequency(void) const
-    {
-        return frequency;
     }
 };
 
@@ -94,7 +86,7 @@ public:
 
     bool operator() (Word &w) const
     {
-        return (w.get_frequency() <= (frequency - (!front ? 1 : 0)));
+        return (w.frequency <= (frequency - (!front ? 1 : 0)));
     }
 };
 
@@ -106,7 +98,7 @@ public:
 list<Word>::iterator insert_word(list<Word> &l, const Word &w, bool bump = false)
 {
     list<Word>::iterator i;
-    i = find_if(l.begin(), l.end(), WordFreqPred(w.get_frequency(), bump));
+    i = find_if(l.begin(), l.end(), WordFreqPred(w.frequency, bump));
     return l.insert(i, w);
 }
 
@@ -177,7 +169,7 @@ public:
     }
 
     /// Get n-th word stored in trie under given full key.
-    const Word& query(string &full_key, int n = 0)
+    Word& query(string &full_key, int n = 0)
     {
         list<Word>& leaf = get_leaf(full_key.c_str());
         /// @internal We assume that leaf.length() > n
@@ -187,10 +179,9 @@ public:
             i++, j++;
 
         /// Bump frequency and reinsert word if needed
-        if ((*i).is_bumpable())
+        if (i->bumpable)
         {
-            Word w = Word(*i);
-            w.bump();
+            Word w = Word(i->str, i->frequency + 1);
             leaf.erase(i);
             i = insert_word(leaf, w, true);
         }
@@ -205,7 +196,6 @@ private:
     string full_key;
     bool prev_punct, word_put;
     int skips;
-    Word trie_word;
     Trie *trie;
 
     /// If word selected so far has not been printed yet, do it
@@ -228,8 +218,7 @@ public:
     /// Print word selected so far
     void put_current_word(void)
     {
-        trie_word = trie->query(full_key, skips);
-        cout << trie_word;
+        trie->query(full_key, skips).print();
         full_key.clear();
         skips = 0;
         word_put = true;

@@ -210,7 +210,7 @@ class T9Reader
 {
 private:
     string full_key;
-    bool prev_space, word_put;
+    bool prev_punct, word_put;
     int skips;
     Word trie_word;
     Trie *trie;
@@ -228,7 +228,7 @@ public:
         trie = t;
         full_key = "";
         word_put = true;
-        prev_space = false;
+        prev_punct = false;
         skips = 0;
     }
 
@@ -240,6 +240,7 @@ public:
         full_key.clear();
         skips = 0;
         word_put = true;
+        prev_punct = false;
     }
     
     void read(const string &input)
@@ -256,17 +257,20 @@ public:
                 /// Next character in word key
                 if ((*i >= '2') && (*i <= '9'))
                 {
+                    if (prev_punct)
+                        put_pending();
                     full_key += *i;
                     word_put = false;
                 }
                 else if (*i == '*')
                     skips++;
-                /// Punctuation
+                /// Punctuation (put word)
                 else if (*i == '1')
                 {
                     put_pending();
                     full_key = "1";
                     word_put = false;
+                    prev_punct = true;
                 }
             }
         }

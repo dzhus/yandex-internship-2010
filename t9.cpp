@@ -28,7 +28,7 @@ const string get_full_key(const string& s)
     /// Preallocate full string to save cycles
     res.resize(s.length());
     
-    for (int i = 0; i != s.length(); i++)
+    for (small_int i = 0; i != s.length(); i++)
         res[i] = char_keys[s[i] - 'a'];
 
     return res;
@@ -40,14 +40,14 @@ class Word
 public:
     const string str;
 
+    const small_int frequency;
+
     /// Word frequency must be increased by 1 after each use only if
     /// this is true
     const bool bumpable;
-
-    const small_int frequency;
     
     Word()
-        :bumpable(false), frequency(0)
+        :frequency(0), bumpable(false)
     {}
 
     Word(const string &s, const small_int &freq, const bool &b = true)
@@ -86,7 +86,7 @@ public:
 
     bool operator() (Word &w) const
     {
-        return (w.frequency <= (frequency - (!front ? 1 : 0)));
+        return (w.frequency <= (frequency - !front));
     }
 };
 

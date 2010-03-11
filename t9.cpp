@@ -3,11 +3,19 @@
 #include <algorithm>
 #include <list>
 #include <vector>
+#include <stack>
 
 using namespace std;
 
 typedef unsigned short int small_int;
+
+/// Trie level.
 typedef unsigned char level_t;
+
+/// Word frequency.
+///
+/// @internal Possible overflow at 65k
+typedef small_int frequency_t;
 
 const int bufsize = 100000;
 
@@ -27,21 +35,19 @@ class Word
 public:
     const string str;
 
-    const small_int frequency;
-
     /// Word frequency must be increased by 1 after each use only if
     /// this is true
     const bool bumpable;
     
     Word()
-        :frequency(0), bumpable(false)
+        :bumpable(false)
     {}
 
-    Word(const string &s, const small_int &freq, const bool &b = true)
-        :str(s), frequency(freq), bumpable(b)
+    Word(const string &s, const bool &b = true)
+        :str(s), bumpable(b)
     {}
 
-    void print()
+    void print() const
     {
         cout << str;
     }
@@ -58,66 +64,169 @@ ostream& operator <<(ostream &out, Word &w)
     return out;
 }
 
-/// If front is true, predicate is true for words with lower (or
-/// equal) frequency. Otherwise, predicate gives truth if words have
-/// higher frequency.
-class WordFreqPred
-{
-private:
-    small_int frequency;
-    bool front;
-public:
-    WordFreqPred(int freq, bool f)
-        :frequency(freq), front(f)
-    {}
-
-    bool operator() (Word &w) const
-    {
-        return (w.frequency <= (frequency - !front));
-    }
-};
+typedef list<Word> word_list;
 
 /// Insert new word into word list wrt frequency
 ///
-/// If bump is false, word is inserted after all words with the same
-/// frequency. Otherwise, word is put in front of all equifrequent
-/// words.
-list<Word>::iterator insert_word(list<Word> &l, const Word &w, bool bump = false)
+/// @param bump If true, word is inserted in the beginning of list.
+///             Otherwise, it's appended after all other items.
+///
+/// @return List beginning iterator.
+word_list::iterator insert_word(word_list &l, const Word &w, bool bump = false)
 {
-    list<Word>::iterator i;
-    i = find_if(l.begin(), l.end(), WordFreqPred(w.frequency, bump));
-    return l.insert(i, w);
+    if (bump)
+        l.push_front(w);
+    else
+        l.push_back(w);
+    return l.begin();
 }
+
+template <class Label, class Data>
+class BinaryTree
+{
+private:
+
+
+    /// Data stored in this node
+    Data data;
+    
+    BinaryTree *prev, *next;
+public:
+    /// Node label
+    const Label label;
+    
+    /// STL-style input in-order iterator for tree.
+    class iterator {
+    private:
+        /// Standard traits.
+        typedef input_iterator_tag iterator_category;
+        typedef Data& value_type;
+        typedef ptrdiff_t distance_type;
+
+        /// Tree we iterate over
+        BinaryTree *tree;
+
+        /// Traversal stack
+        stack<BinaryTree*> iter_stack;
+
+    public:
+        /// @param end If true, create end iterator
+        iterator(BinaryTree *ptr, bool end = false)
+            :tree(ptr)
+        {
+            if (!end)
+                while (ptr != NULL)
+                {
+                    iter_stack.push(ptr);
+                    ptr = ptr->prev;
+                }
+        }
+
+        iterator& operator ++(int)
+        {
+            BinaryTree *ptr = iter_stack.top();
+            iter_stack.pop();
+            ptr = ptr->next;
+            while (ptr != NULL)
+            {
+                iter_stack.push(ptr);
+                ptr = ptr->prev;
+            }
+            return *this;
+        }
+
+        iterator& operator ++(void)
+        {
+            *this++;
+            return *this;
+        }
+
+        bool operator==(iterator iter)
+        {
+            return (tree == iter.tree && iter_stack == iter.iter_stack);
+        }
+        
+        bool operator !=(iterator iter)
+        {
+            return !(tree != iter.tree || iter_stack != iter.iter_stack);
+        }
+
+        Data& operator *(void)
+        {
+            return iter_stack.top()->data;
+        }
+
+        /// @return Label of node that iterator currently points at.
+        const Label& label(void)
+        {
+            return iter_stack.top()->label;
+        }
+    };
+    
+    
+    BinaryTree(Label l)
+        :prev(NULL), next(NULL), label(l)
+    {}
+    
+    iterator begin(void)
+    {
+        return iterator(this);
+    }
+
+    iterator end(void)
+    {
+        return iterator(this, true);
+    }
+
+    /// Get data under node with given label, creating it if needed.
+    ///
+    /// @todo Rewrite iteratively.
+    Data& get_data(const Label l)
+    {
+        if (l == label)
+            return data;
+        else
+        {
+            BinaryTree<Label, Data> *&ptr = (l < label) ? next : prev;
+            
+            if (ptr == NULL)
+                ptr = new BinaryTree(l);
+            
+            return ptr->get_data(l);
+        }
+    }
+};
+
+typedef BinaryTree<frequency_t, word_list > word_tree;
 
 class Trie
 {
 private:
-    /// Words stored in root leaf of trie
-    list<Word> words;
+    /// Binary tree of words stored in root leaf of trie (sorted by
+    /// frequency)
+    word_tree words;
 
     /// Children tries
     vector<Trie*> children;
     
     /// Add word object under given full key
-    void add_word_proc(const Word &w, level_t level = 0)
+    void add_word_proc(const Word &w, const small_int &freq = 500, level_t level = 0)
     {
         if (w.str[level] == '\0')
-        {
-            insert_word(words, w);
-        }
+            insert_word(words.get_data(freq), w);
         else
         {
             vector<Trie*>::size_type key = char_keys[w.str[level] - 'a'] - '1';
             if (children[key] == NULL)
                 children[key] = new Trie();
-            children[key]->add_word_proc(w, level + 1);
+            children[key]->add_word_proc(w, freq, level + 1);
         }
     }
 
     /// Get list of words stored in trie under given full key. We
     /// assume that all used words are present in the trie, so this
     /// always succeeds.
-    list<Word>& get_leaf(const char *full_key)
+    word_tree& get_leaf(const char *full_key)
     {
         vector<Trie*>::size_type key = (full_key[0] - '1');
         if (*full_key == '\0')
@@ -129,6 +238,7 @@ private:
     }
 public:
     Trie(void)
+        :words(500)
     {
         /// Preallocate vector for 9 (from 1 to 9) children which may
         /// be added later
@@ -145,7 +255,7 @@ public:
     /// Public wrapper for add_word_proc
     void add_word(const string &contents, const small_int &freq)
     {
-        add_word_proc(Word(contents, freq));
+        add_word_proc(Word(contents), freq);
     }
 
     /// Add new punctuation mark under 1
@@ -153,28 +263,54 @@ public:
     {
         if (children[0] == NULL)
             children[0] = new Trie();
-        insert_word(children[0]->words, Word(punct, 1));
+        insert_word(children[0]->words.get_data(500), Word(punct, false));
     }
 
     /// Get n-th word stored in trie under given full key.
-    Word& query(string &full_key, int n = 0)
+    const Word& query(string &full_key, int n = 0)
     {
-        list<Word>& leaf = get_leaf(full_key.c_str());
-        /// @internal We assume that leaf.length() > n
-        list<Word>::iterator i = leaf.begin();
-        int j = 0;
-        while (j < n)
-            i++, j++;
+        word_tree &t = get_leaf(full_key.c_str());
+
+        /// *t_iter is a list of words with same frequency
+        word_tree::iterator t_iter = t.begin();
+        word_list::iterator w_iter, w_enditer;
+
+        do
+        {
+            /// Skip to next non-empty frequency if needed.
+            while (!((*t_iter).size()))
+                t_iter++;
+
+            /// Begin iterating over words with this frequency
+            w_iter = (*t_iter).begin();
+            w_enditer = (*t_iter).end();
+
+            /// Try to skip n items (or less)
+            while ((w_iter != w_enditer) && n)
+            {
+                w_iter++;
+                n--;
+            }
+                
+            /// End of frequency reached?
+            if (w_iter == w_enditer)
+                t_iter++;
+            else
+                break;
+        }
+        while (1);
 
         /// Bump frequency and reinsert word if needed
-        if (i->bumpable)
+        if (w_iter->bumpable)
         {
-            Word w = Word(i->str, i->frequency + 1);
-            leaf.erase(i);
-            i = insert_word(leaf, w, true);
+            Word w = Word(w_iter->str);
+            /// Remove old word entry
+            (*t_iter).erase(w_iter);
+            
+            w_iter = insert_word(t.get_data(t_iter.label() + 1), w, true);
         }
 
-        return *i;
+        return *w_iter;
     }
 };
 

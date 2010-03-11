@@ -168,6 +168,14 @@ public:
         :prev(NULL), next(NULL), label(l)
     {}
     
+    ~BinaryTree(void)
+    {
+        if (prev != NULL)
+            delete prev;
+        if (next != NULL)
+            delete next;
+    }    
+
     iterator begin(void)
     {
         return iterator(this);

@@ -7,6 +7,7 @@
 using namespace std;
 
 typedef unsigned short int small_int;
+typedef unsigned char level_t;
 
 const int bufsize = 100000;
 
@@ -19,20 +20,6 @@ const char char_keys[26] = {'2', '2', '2',
                             '7', '7', '7', '7',
                             '8', '8', '8',
                             '9', '9', '9', '9'};
-
-/// Return full key (a string of digits from 2 to 9) for any
-/// given word
-const string get_full_key(const string& s)
-{
-    string res;
-    /// Preallocate full string to save cycles
-    res.resize(s.length());
-    
-    for (small_int i = 0; i != s.length(); i++)
-        res[i] = char_keys[s[i] - 'a'];
-
-    return res;
-}
 
 /// Word with frequency
 class Word
@@ -112,18 +99,18 @@ private:
     vector<Trie*> children;
     
     /// Add word object under given full key
-    void add_word_proc(const char *full_key, const Word &w)
+    void add_word_proc(const Word &w, level_t level = 0)
     {
-        vector<Trie*>::size_type key = (full_key[0] - '1');
-        if (*full_key == '\0')
+        if (w.str[level] == '\0')
         {
             insert_word(words, w);
         }
         else
         {
+            vector<Trie*>::size_type key = char_keys[w.str[level] - 'a'] - '1';
             if (children[key] == NULL)
                 children[key] = new Trie();
-            children[key]->add_word_proc(full_key + 1, w);
+            children[key]->add_word_proc(w, level + 1);
         }
     }
 
@@ -158,14 +145,15 @@ public:
     /// Public wrapper for add_word_proc
     void add_word(const string &contents, const small_int &freq)
     {
-        string fk = get_full_key(contents);
-        add_word_proc(fk.c_str(), Word(contents, freq));
+        add_word_proc(Word(contents, freq));
     }
 
     /// Add new punctuation mark under 1
     void add_punctuation(const string &punct)
     {
-        add_word_proc("1", Word(punct, 1, false));
+        if (children[0] == NULL)
+            children[0] = new Trie();
+        insert_word(children[0]->words, Word(punct, 1));
     }
 
     /// Get n-th word stored in trie under given full key.

@@ -7,17 +7,13 @@
 
 using namespace std;
 
-typedef unsigned short int small_int;
-
 /// Trie level.
 typedef unsigned char level_t;
 
 /// Word frequency.
-///
-/// @internal Possible overflow at 65k
-typedef small_int frequency_t;
+typedef unsigned int frequency_t;
 
-const int bufsize = 100000;
+const int bufsize = 100005;
 
 /// Mapping of characters to digital keys
 const char char_keys[26] = {'2', '2', '2',
@@ -218,7 +214,7 @@ private:
     vector<Trie*> children;
     
     /// Add word object under given full key
-    void add_word_proc(const Word &w, const small_int &freq = 500, level_t level = 0)
+    void add_word_proc(const Word &w, const frequency_t &freq = 500, level_t level = 0)
     {
         if (w.str[level] == '\0')
             insert_word(words.get_data(freq), w);
@@ -261,7 +257,7 @@ public:
     }
 
     /// Public wrapper for add_word_proc
-    void add_word(const string &contents, const small_int &freq)
+    void add_word(const string &contents, const frequency_t &freq)
     {
         add_word_proc(Word(contents), freq);
     }
@@ -396,7 +392,7 @@ int main(int argc, char* argv[])
 {
     int dict_size;
     string dict_word;
-    small_int freq;
+    frequency_t freq;
     Trie tr;
     T9Reader t9 = T9Reader(&tr);
     char buf[bufsize];

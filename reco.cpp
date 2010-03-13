@@ -17,8 +17,8 @@ class ImageMask
 {
 public:
     /// Implementations of this method must set new pixel values on
-    /// target image given the source image and the position of mask
-    /// center.
+    /// target image given the source image and current position of
+    /// mask center.
     virtual void operator ()(const Image &source,
                                 coord_t &row,
                                 coord_t &col,
@@ -97,7 +97,7 @@ public:
     }
 
     /// Applies functional object m to every pixel of the image.
-    void apply_mask(ImageMask &m)
+    Image& apply_mask(ImageMask &m)
     {
         coord_t i, j;
         
@@ -108,6 +108,7 @@ public:
             for (j = 0; j != pixels[i].size(); j++)
                 m(copy, i, j, *this);
         }
+        return *this;
     }
 };
 
@@ -167,9 +168,9 @@ int main(int argc, char* argv[])
 
     j = i;
     cout << i;
-    i.apply_mask(m);
+    i.apply_mask(m).apply_mask(n);
     cout << i;
-    j.apply_mask(n);
+    j.apply_mask(n).apply_mask(m);
     cout << j;
 
     return 0;

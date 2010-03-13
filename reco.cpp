@@ -9,6 +9,16 @@ typedef vector<pixel_t> image_row_t;
 typedef vector<image_row_t> pixel_matrix_t;
 typedef pixel_matrix_t::size_type coord_t;
 
+struct Point
+{
+    coord_t x;
+    coord_t y;
+
+    Point(coord_t ix, coord_t iy)
+        :x(ix), y(iy)
+    {}
+};
+
 class Image;
 
 /// Class of functional objects which represent mask operations on
@@ -74,6 +84,32 @@ public:
                 out << (pixels[i][j] != 0);
             out << endl;
         }
+    }
+
+    /// Calculate total area of foreground pixels on image
+    unsigned int get_area()
+    {
+        unsigned int area = 0;
+
+        for (coord_t i = 0; i != pixels.size(); i++)
+            for (coord_t j = 0; j != pixels[i].size(); j++)
+                area += pixels[i][j];
+
+        return area;
+    }
+
+    /// Calculate center of mass
+    Point get_mass_center()
+    {
+        unsigned int x = 0, y = 0, area = get_area();
+        for (coord_t i = 0; i != pixels.size(); i++)
+            for (coord_t j = 0; j != pixels[i].size(); j++)
+                if (pixels[i][j])
+                {
+                    x += j;
+                    y += i;
+                }
+        return Point(x / area, y / area);
     }
 
     /// Get value of pixel at coordinates (i, j) of the image.
@@ -168,10 +204,12 @@ int main(int argc, char* argv[])
 
     j = i;
     cout << i;
+    cout << i.get_area() << " " << i.get_mass_center().x << " " << i.get_mass_center().y << endl;
+
     i.apply_mask(m).apply_mask(n);
     cout << i;
     j.apply_mask(n).apply_mask(m);
-    cout << j;
+    
 
     return 0;
 }

@@ -30,9 +30,9 @@ public:
     /// target image given the source image and current position of
     /// mask center.
     virtual void operator ()(const Image &source,
-                                coord_t &row,
-                                coord_t &col,
-                                Image &target) = 0;
+                             coord_t &row,
+                             coord_t &col,
+                             Image &target) = 0;
 };
 
 /// Binary image
@@ -120,6 +120,7 @@ public:
     {
         double a = 0, x = 0, y = 0;
 
+        /// Find total area and center of mass
         for (coord_t i = 0; i != pixels.size(); i++)
             for (coord_t j = 0; j != pixels[i].size(); j++)
                 if (pixels[i][j])
@@ -129,6 +130,7 @@ public:
                     a++;
                 }
         
+        /// Find second moments
         Point com = Point(x / a, y / a);
         double hor_moment = 0, vert_moment = 0, mixed_moment = 0;
         int h, v;

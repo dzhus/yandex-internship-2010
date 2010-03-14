@@ -44,6 +44,30 @@ private:
     unsigned int height;
 
 public:
+    /// Distinctive characteristic props of the image
+    struct ImageProperties
+    {
+        /// Total area of foreground pixels of the image
+        const double area;
+        
+        /// Center of mass
+        const Point com;
+        
+        /// Second moment about horizontal axis
+        const double hor_moment;
+        
+        /// Second moment about vertical axis
+        const double vert_moment;
+        
+        /// Second mixed moment
+        const double mixed_moment;
+
+        ImageProperties(double a, Point c, double hm, double vm, double mm)
+            :area(a), com(c), hor_moment(hm), vert_moment(vm), mixed_moment(mm)
+        {}
+    };
+
+public:
     Image()
         :width(0), height(0)
     {}
@@ -86,30 +110,40 @@ public:
         }
     }
 
-    /// Calculate total area of foreground pixels on image
-    unsigned int get_area()
+    /// Get structure populated with image props
+    ///
+    /// @see Image::ImageProperties
+    ///
+    /// @internal We don't use separate getter method for every moment
+    /// to save time on calculations.
+    ImageProperties get_props(void) const
     {
-        unsigned int area = 0;
+        double a = 0, x = 0, y = 0;
 
-        for (coord_t i = 0; i != pixels.size(); i++)
-            for (coord_t j = 0; j != pixels[i].size(); j++)
-                area += pixels[i][j];
-
-        return area;
-    }
-
-    /// Calculate center of mass
-    Point get_mass_center()
-    {
-        unsigned int x = 0, y = 0, area = get_area();
         for (coord_t i = 0; i != pixels.size(); i++)
             for (coord_t j = 0; j != pixels[i].size(); j++)
                 if (pixels[i][j])
                 {
                     x += j;
                     y += i;
+                    a++;
                 }
-        return Point(x / area, y / area);
+        
+        Point com = Point(x / a, y / a);
+        double hor_moment = 0, vert_moment = 0, mixed_moment = 0;
+        int h, v;
+        
+        for (coord_t i = 0; i != pixels.size(); i++)
+            for (coord_t j = 0; j != pixels[i].size(); j++)
+                if (pixels[i][j])
+                {
+                    v = j - com.x;
+                    h = i - com.y;
+                    hor_moment += h * h / a;
+                    vert_moment += v * v / a;
+                    mixed_moment += h * v / a;
+                }
+        return ImageProperties(a, com, hor_moment, vert_moment, mixed_moment);
     }
 
     /// Get value of pixel at coordinates (i, j) of the image.
@@ -203,13 +237,10 @@ int main(int argc, char* argv[])
         cin >> i;
 
     j = i;
-    cout << i;
-    cout << i.get_area() << " " << i.get_mass_center().x << " " << i.get_mass_center().y << endl;
 
-    i.apply_mask(m).apply_mask(n);
     cout << i;
-    j.apply_mask(n).apply_mask(m);
-    
+    Image::ImageProperties p = i.get_props();
+    cout << p.area << " (" << p.com.x << ", " << p.com.y << ") H: " << p.hor_moment << " V: " << p.vert_moment << " M: " << p.mixed_moment << endl;
 
     return 0;
 }

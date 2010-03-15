@@ -7,7 +7,7 @@
 
 using namespace std;
 
-typedef bool pixel_t;
+typedef unsigned char pixel_t;
 typedef vector<pixel_t> image_row_t;
 typedef vector<image_row_t> pixel_matrix_t;
 typedef pixel_matrix_t::size_type coord_t;
@@ -71,9 +71,21 @@ public:
     };
 
 public:
-    Image()
+    Image(void)
         :width(0), height(0)
     {}
+
+    /// Create new clear Image object with given dimensions
+    Image(unsigned int iwidth, unsigned int iheight)
+    {
+        width = iwidth;
+        height = iheight;
+        
+        image_row_t r;
+        r.resize(width, 0);
+        for (unsigned int i = 0; i!= height; i++)
+            pixels.push_back(r);
+    }
 
     /// Read image from stream.
     ///
@@ -111,6 +123,16 @@ public:
                 out << (pixels[i][j] != 0);
             out << endl;
         }
+    }
+     
+    unsigned int get_width(void)
+    {
+        return width;
+    }
+
+    unsigned int get_height(void)
+    {
+        return height;
     }
 
     /// Get structure populated with image props
@@ -186,6 +208,40 @@ public:
         }
         return *this;
     }
+
+    /// Move first found connected component to image t
+    ///
+    /// @internal Recursive and slow
+    void extract_connected(Image &t, coord_t i = 0, coord_t j = 0, bool start = true)
+    {
+        if (start)
+        {
+            bool found = false;
+            /// Find any foreground pixel
+            for (i = 0; i != pixels.size(); i++)
+            {
+                for (j = 0; j != pixels[i].size(); j++)
+                    if (pixels[i][j])
+                    {
+                        found = true;
+                        break;
+                    }
+                if (found)
+                {
+                    break;
+                }
+            }
+        }
+        if (pixels[i][j])
+        {
+            t.set_pixel(1, i, j);
+            set_pixel(0, i, j);
+
+            for (coord_t m = 0; m != 3; m++)
+                for (coord_t n = 0; n != 3; n++)
+                    extract_connected(t, i + m - 1, j + n - 1, false);
+        }
+    }
 };
 
 class ErodeMask : public ImageMask
@@ -243,9 +299,11 @@ int main(int argc, char* argv[])
     while (cin)
         cin >> i;
 
-    j = i;
+    j = Image(i.get_width(), i.get_height());
 
     cout << i;
+    i.extract_connected(j);
+    cout << j;
     Image::ImageProperties p = i.get_props();
     cout << p.area << " (" << p.com.x << ", " << p.com.y << ") H: " << p.hor_moment << " V: " << p.vert_moment << " M: " << p.mixed_moment << endl;
 

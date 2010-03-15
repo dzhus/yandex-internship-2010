@@ -239,7 +239,9 @@ public:
         return *this;
     }
 
-    /// Move first found connected component to image t
+    /// Move first found connected component to image t.
+    ///
+    /// Leftmost component is moved.
     ///
     /// @internal Recursive and slow
     ///
@@ -250,9 +252,9 @@ public:
         if (start)
         {
             /// Find any foreground pixel
-            for (i = 0; i != pixels.size(); i++)
+            for (j = 0; j != width; j++)
             {
-                for (j = 0; j != pixels[i].size(); j++)
+                for (i = 0; i != height; i++)
                     if (pixels[i][j])
                     {
                         found = true;

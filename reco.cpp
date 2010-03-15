@@ -120,7 +120,6 @@ public:
     void write(ostream &out)
     {
         coord_t i, j;
-        cout << width << " " << height << endl;
         for (i = 0; i != pixels.size(); i++)
         {
             for (j = 0; j != pixels[i].size(); j++)

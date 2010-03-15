@@ -352,7 +352,13 @@ int main(int argc, char* argv[])
             j.crop();
             Image::ImageProperties p = j.get_props();
             if (p.area > area_threshold)
+            {
                 cout << j;
+                cout << p.area << " (" << p.com.x << ", " << p.com.y << ")";
+                cout << "H: " << p.hor_moment << " V: " << p.vert_moment;
+                cout << " M: " << p.mixed_moment << endl;
+                /// @todo Resize to canonical size, compare moments
+            }
         }
     } while (extracted);
 

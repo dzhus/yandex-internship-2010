@@ -12,6 +12,10 @@ typedef vector<pixel_t> image_row_t;
 typedef vector<image_row_t> pixel_matrix_t;
 typedef pixel_matrix_t::size_type coord_t;
 
+/// Connected areas with area less than this value are considered
+/// noise.
+const unsigned int area_threshold = 20;
+
 struct Point
 {
     coord_t x;
@@ -331,21 +335,27 @@ ostream& operator <<(ostream &out, Image &i)
 int main(int argc, char* argv[])
 {
     string s;
-    Image i, j, k;
+    Image i;
+    bool extracted = false;
     ErodeMask m;
     DilateMask n;
-    /// Read first row to find out image width
-    while (cin)
-        cin >> i;
 
-    j = Image(i.get_width(), i.get_height());
+    cin >> i;
 
-    cout << i;
-    i.extract_connected(j);
-    j.crop();
-    cout << j;
-    Image::ImageProperties p = i.get_props();
-    cout << p.area << " (" << p.com.x << ", " << p.com.y << ") H: " << p.hor_moment << " V: " << p.vert_moment << " M: " << p.mixed_moment << endl;
+
+    /// Read connected components of image from left to right
+    do
+    {
+        Image j = Image(i.get_width(), i.get_height());
+        extracted = i.extract_connected(j);
+        if (extracted)
+        {
+            j.crop();
+            Image::ImageProperties p = j.get_props();
+            if (p.area > area_threshold)
+                cout << j;
+        }
+    } while (extracted);
 
     return 0;
 }

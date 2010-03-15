@@ -2,6 +2,9 @@
 #include <vector>
 #include <string>
 
+#define out_of_bounds(i, j)                     \
+    ((((i) < 0) || ((j) < 0)) || (((i) >= height) || ((j) >= width)))
+
 using namespace std;
 
 typedef bool pixel_t;
@@ -121,6 +124,7 @@ public:
         double a = 0, x = 0, y = 0;
 
         /// Find total area and center of mass
+        /// @todo Write for_all(i, j, body) macro
         for (coord_t i = 0; i != pixels.size(); i++)
             for (coord_t j = 0; j != pixels[i].size(); j++)
                 if (pixels[i][j])
@@ -155,7 +159,7 @@ public:
     /// we access image pixel.
     pixel_t get_pixel(coord_t i, coord_t j, pixel_t d = 0) const
     {
-        if (((i < 0) || (j < 0)) || ((i >= height) || (j >= width)))
+        if (out_of_bounds(i, j))
             return d;
         else
             return pixels[i][j];
@@ -164,7 +168,7 @@ public:
     /// Assign new value to pixal at coordinates (i, j)
     void set_pixel(pixel_t v, coord_t i, coord_t j)
     {
-        if (!(((i < 0) || (j < 0)) || ((i >= height) || (j >= width))))
+        if (!out_of_bounds(i, j))
             pixels[i][j] = v;
     }
 
@@ -193,6 +197,7 @@ class ErodeMask : public ImageMask
     {
         bool target_pixel = true;
         
+        ///@todo Write for_neighbourhood(i, j, body) macro
         for (coord_t i = 0; i != 2; i++)
             for (coord_t j = 0; j != 2; j++)
                 target_pixel &= source.get_pixel(row + i - 1, col + j - 1);

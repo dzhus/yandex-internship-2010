@@ -2,8 +2,20 @@
 #include <vector>
 #include <string>
 
-#define out_of_bounds(i, j)                     \
-    ((((i) < 0) || ((j) < 0)) || (((i) >= height) || ((j) >= width)))
+/// True if (i, j) are coordinates of pixel outside of image with
+/// given dimensions.
+///
+/// @important i and j are evaluated twice!
+#define out_of_bounds(i, j, height, width)                              \
+    ((((i) < 0) || ((j) < 0)) || (((i) >= (height)) || ((j) >= (width))))
+
+/// Execute body for every (i, j) in [-1, 0, 1]^2.
+/// 
+/// @note From Lisp land with love.
+#define for_neighbourhood(i, j, body)           \
+    for (coord_t i = 0; i != 3; i++)            \
+        for (coord_t j = 0; j != 3; j++)        \
+            body;
 
 using namespace std;
 
@@ -280,9 +292,7 @@ public:
                 t.set_pixel(1, i, j);
                 set_pixel(0, i, j);
                 
-                for (coord_t m = 0; m != 3; m++)
-                    for (coord_t n = 0; n != 3; n++)
-                        extract_connected(t, i + m - 1, j + n - 1, false);
+                for_neighbourhood(m, n, extract_connected(t, i + m - 1, j + n - 1, false));
             }
         return found;
     }
@@ -297,10 +307,7 @@ class ErodeMask : public ImageMask
     {
         pixel_t target_pixel = true;
         
-        ///@todo Write for_neighbourhood(i, j, body) macro
-        for (coord_t i = 0; i != 3; i++)
-            for (coord_t j = 0; j != 3; j++)
-                target_pixel &= source.get_pixel(row + i - 1, col + j - 1);
+        for_neighbourhood(i, j, target_pixel &= source.get_pixel(row + i - 1, col + j - 1));
 
         target.set_pixel(target_pixel, row, col);
     }
@@ -314,9 +321,7 @@ class DilateMask : public ImageMask
                      Image &target)
     {
         if (source.get_pixel(row, col))
-            for (coord_t i = 0; i != 3; i++)
-                for (coord_t j = 0; j != 3; j++)
-                    target.set_pixel(1, row + i - 1, col + j - 1);
+            for_neighbourhood(i, j, target.set_pixel(1, row + i - 1, col + j - 1));
 
     }
 };

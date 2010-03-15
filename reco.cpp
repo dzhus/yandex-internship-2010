@@ -298,8 +298,8 @@ class ErodeMask : public ImageMask
         pixel_t target_pixel = true;
         
         ///@todo Write for_neighbourhood(i, j, body) macro
-        for (coord_t i = 0; i != 2; i++)
-            for (coord_t j = 0; j != 2; j++)
+        for (coord_t i = 0; i != 3; i++)
+            for (coord_t j = 0; j != 3; j++)
                 target_pixel &= source.get_pixel(row + i - 1, col + j - 1);
 
         target.set_pixel(target_pixel, row, col);
@@ -314,8 +314,8 @@ class DilateMask : public ImageMask
                      Image &target)
     {
         if (source.get_pixel(row, col))
-            for (coord_t i = 0; i != 2; i++)
-                for (coord_t j = 0; j != 2; j++)
+            for (coord_t i = 0; i != 3; i++)
+                for (coord_t j = 0; j != 3; j++)
                     target.set_pixel(1, row + i - 1, col + j - 1);
 
     }

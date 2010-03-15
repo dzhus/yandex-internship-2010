@@ -140,7 +140,7 @@ public:
     /// @see Image::ImageProperties
     ///
     /// @internal We don't use separate getter method for every moment
-    /// to save time on calculations.
+    /// to save time on matrix traversal.
     ImageProperties get_props(void) const
     {
         double a = 0, x = 0, y = 0;

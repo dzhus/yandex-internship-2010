@@ -46,7 +46,9 @@ public:
 class Image
 {
 private:
+    /// Matrix with all pixels of image
     pixel_matrix_t pixels;
+
     unsigned int width;
     unsigned int height;
 
@@ -293,7 +295,7 @@ class ErodeMask : public ImageMask
                      coord_t &col,
                      Image &target)
     {
-        bool target_pixel = true;
+        pixel_t target_pixel = true;
         
         ///@todo Write for_neighbourhood(i, j, body) macro
         for (coord_t i = 0; i != 2; i++)

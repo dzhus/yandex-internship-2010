@@ -107,7 +107,7 @@ public:
 
             r.resize(width, 0);
         
-            for (unsigned int i = 0; i != s.length(); i++)
+            for (unsigned int i = 0; i != width; i++)
                 /// Simple threshold binarization
                 r[i] = (s[i] == '#' || s[i] == '@');
             
@@ -120,9 +120,9 @@ public:
     void write(ostream &out)
     {
         coord_t i, j;
-        for (i = 0; i != pixels.size(); i++)
+        for (i = 0; i != height; i++)
         {
-            for (j = 0; j != pixels[i].size(); j++)
+            for (j = 0; j != width; j++)
                 out << (pixels[i][j] != 0);
             out << endl;
         }
@@ -150,8 +150,8 @@ public:
 
         /// Find total area and center of mass
         /// @todo Write for_all(i, j, body) macro
-        for (coord_t i = 0; i != pixels.size(); i++)
-            for (coord_t j = 0; j != pixels[i].size(); j++)
+        for (coord_t i = 0; i != height; i++)
+            for (coord_t j = 0; j != width; j++)
                 if (pixels[i][j])
                 {
                     x += j;
@@ -164,8 +164,8 @@ public:
         double hor_moment = 0, vert_moment = 0, mixed_moment = 0;
         int h, v;
         
-        for (coord_t i = 0; i != pixels.size(); i++)
-            for (coord_t j = 0; j != pixels[i].size(); j++)
+        for (coord_t i = 0; i != height; i++)
+            for (coord_t j = 0; j != width; j++)
                 if (pixels[i][j])
                 {
                     v = j - com.x;
@@ -204,8 +204,8 @@ public:
         coord_t i, j;
         
         /// Calculate bounding box
-        for (i = 0; i != pixels.size(); i++)
-            for (j = 0; j != pixels[i].size(); j++)
+        for (i = 0; i != height; i++)
+            for (j = 0; j != width; j++)
                 if (pixels[i][j])
                 {
                     min_x = (min_x > j) ? j : min_x;
@@ -236,9 +236,9 @@ public:
         
         Image copy(*this);
 
-        for (i = 0; i != pixels.size(); i++)
+        for (i = 0; i != height; i++)
         {
-            for (j = 0; j != pixels[i].size(); j++)
+            for (j = 0; j != width; j++)
                 m(copy, i, j, *this);
         }
         return *this;

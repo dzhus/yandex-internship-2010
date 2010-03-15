@@ -221,7 +221,9 @@ public:
             pixels[i].erase(pixels[i].begin(), pixels[i].begin() + min_x);
             pixels[i].erase(pixels[i].begin() + max_x - min_x + 1, pixels[i].end());
         }
-        
+
+        width = max_x - min_x + 1;
+        height = max_y - min_y + 1;
     }
 
     /// Applies functional object m to every pixel of the image.

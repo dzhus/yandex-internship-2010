@@ -194,6 +194,36 @@ public:
             pixels[i][j] = v;
     }
 
+    /// Resize image to the size of foreground bounding box
+    void crop(void)
+    {
+        coord_t min_x = width, max_x = 0, min_y = height, max_y = 0;
+        coord_t i, j;
+        
+        /// Calculate bounding box
+        for (i = 0; i != pixels.size(); i++)
+            for (j = 0; j != pixels[i].size(); j++)
+                if (pixels[i][j])
+                {
+                    min_x = (min_x > j) ? j : min_x;
+                    min_y = (min_y > i) ? i : min_y;
+
+                    max_x = (max_x < j) ? j : max_x;
+                    max_y = (max_y < i) ? i : max_y;
+                }
+        
+        /// Cut borders
+        pixels.erase(pixels.begin(), pixels.begin() + min_y);
+        pixels.erase(pixels.begin() + max_y - min_y + 1, pixels.end());
+
+        for (i = 0; i != pixels.size(); i++)
+        {
+            pixels[i].erase(pixels[i].begin(), pixels[i].begin() + min_x);
+            pixels[i].erase(pixels[i].begin() + max_x - min_x + 1, pixels[i].end());
+        }
+        
+    }
+
     /// Applies functional object m to every pixel of the image.
     Image& apply_mask(ImageMask &m)
     {
@@ -308,6 +338,7 @@ int main(int argc, char* argv[])
 
     cout << i;
     i.extract_connected(j);
+    j.crop();
     cout << j;
     Image::ImageProperties p = i.get_props();
     cout << p.area << " (" << p.com.x << ", " << p.com.y << ") H: " << p.hor_moment << " V: " << p.vert_moment << " M: " << p.mixed_moment << endl;

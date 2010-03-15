@@ -212,11 +212,13 @@ public:
     /// Move first found connected component to image t
     ///
     /// @internal Recursive and slow
-    void extract_connected(Image &t, coord_t i = 0, coord_t j = 0, bool start = true)
+    ///
+    /// @return True if component found, false otherwise.
+    bool extract_connected(Image &t, coord_t i = 0, coord_t j = 0, bool start = true)
     {
+        bool found = false;
         if (start)
         {
-            bool found = false;
             /// Find any foreground pixel
             for (i = 0; i != pixels.size(); i++)
             {
@@ -228,19 +230,22 @@ public:
                     }
                 if (found)
                 {
+                    extract_connected(t, i, j, false);
                     break;
                 }
             }
         }
-        if (pixels[i][j])
-        {
-            t.set_pixel(1, i, j);
-            set_pixel(0, i, j);
-
-            for (coord_t m = 0; m != 3; m++)
-                for (coord_t n = 0; n != 3; n++)
-                    extract_connected(t, i + m - 1, j + n - 1, false);
-        }
+        else
+            if (pixels[i][j])
+            {
+                t.set_pixel(1, i, j);
+                set_pixel(0, i, j);
+                
+                for (coord_t m = 0; m != 3; m++)
+                    for (coord_t n = 0; n != 3; n++)
+                        extract_connected(t, i + m - 1, j + n - 1, false);
+            }
+        return found;
     }
 };
 

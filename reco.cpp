@@ -9,7 +9,7 @@
 #define out_of_bounds(i, j, height, width)                              \
     ((((i) < 0) || ((j) < 0)) || (((i) >= (height)) || ((j) >= (width))))
 
-/// Execute body for every (i, j) in [-1, 0, 1]^2.
+/// Do body for every (i, j) in [0, 1, 2]^2.
 /// 
 /// @note From Lisp land with love.
 #define for_neighbourhood(i, j, body)           \

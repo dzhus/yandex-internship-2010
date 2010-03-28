@@ -198,7 +198,7 @@ public:
     /// we access image pixel.
     pixel_t get_pixel(coord_t i, coord_t j, pixel_t d = 0) const
     {
-        if (out_of_bounds(i, j))
+        if (out_of_bounds(i, j, width, height))
             return d;
         else
             return pixels[i][j];
@@ -207,7 +207,7 @@ public:
     /// Assign new value to pixal at coordinates (i, j)
     void set_pixel(pixel_t v, coord_t i, coord_t j)
     {
-        if (!out_of_bounds(i, j))
+        if (!out_of_bounds(i, j, width, height))
             pixels[i][j] = v;
     }
 

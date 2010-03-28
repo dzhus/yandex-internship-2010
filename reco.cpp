@@ -28,6 +28,9 @@ typedef pixel_matrix_t::size_type coord_t;
 /// noise.
 const unsigned int area_threshold = 20;
 
+const double target_weight = .5;
+const double weight_deviation = .05;
+
 struct Point
 {
     coord_t x;
@@ -343,6 +346,27 @@ ostream& operator <<(ostream &out, Image &i)
     return out;
 }
 
+/// *Try* to dilate or erode image until it gains weight within
+/// provided bounds.
+///
+/// @important Works bad on small images due to large weight change
+/// after each dilation/erosion.
+void train_image(Image &i, double min_weight, double max_weight)
+{
+    DilateMask dilate;
+    ErodeMask erode;
+    Image::ImageProperties p = i.get_props();
+    cout << p.weight << endl;
+
+    while (i.get_props().weight < min_weight)
+        i.apply_mask(dilate);
+
+    while (i.get_props().weight > max_weight)
+        i.apply_mask(erode);
+}
+
+
+
 int main(int argc, char* argv[])
 {
     string s;
@@ -352,7 +376,6 @@ int main(int argc, char* argv[])
     DilateMask n;
 
     cin >> i;
-    i.apply_mask(m);
 
     /// Read connected components of image from left to right
     do
@@ -362,6 +385,8 @@ int main(int argc, char* argv[])
         if (extracted)
         {
             j.crop();
+            train_image(j, target_weight - weight_deviation, target_weight + weight_deviation);
+            
             Image::ImageProperties p = j.get_props();
             if (p.area > area_threshold)
             {

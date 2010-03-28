@@ -83,8 +83,12 @@ public:
         /// Second mixed moment
         const double mixed_moment;
 
-        ImageProperties(double a, Point c, double hm, double vm, double mm)
-            :area(a), com(c), hor_moment(hm), vert_moment(vm), mixed_moment(mm)
+        /// Foreground area to total image size ratio.
+        const double weight;
+
+        ImageProperties(double a, Point c, double hm, double vm, double mm, double w)
+            :area(a), com(c), hor_moment(hm), vert_moment(vm), mixed_moment(mm),
+             weight(w)
         {}
     };
 
@@ -188,7 +192,8 @@ public:
                     vert_moment += v * v / a;
                     mixed_moment += h * v / a;
                 }
-        return ImageProperties(a, com, hor_moment, vert_moment, mixed_moment);
+    return ImageProperties(a, com, hor_moment, vert_moment, mixed_moment, 
+                           a / (width * height));
     }
 
     /// Get value of pixel at coordinates (i, j) of the image.
@@ -347,7 +352,7 @@ int main(int argc, char* argv[])
     DilateMask n;
 
     cin >> i;
-
+    i.apply_mask(m);
 
     /// Read connected components of image from left to right
     do
@@ -362,8 +367,9 @@ int main(int argc, char* argv[])
             {
                 cout << j;
                 cout << p.area << " (" << p.com.x << ", " << p.com.y << ")";
-                cout << "H: " << p.hor_moment << " V: " << p.vert_moment;
-                cout << " M: " << p.mixed_moment << endl;
+                cout << " H: " << p.hor_moment << " V: " << p.vert_moment;
+                cout << " M: " << p.mixed_moment;
+                cout << " w: " << p.weight << endl;
                 /// @todo Resize to canonical size, compare moments
             }
         }

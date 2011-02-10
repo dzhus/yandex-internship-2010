@@ -1,3 +1,26 @@
+/// T9 algorithm
+///
+/// Problem statement: http://www.izho.kz/2010/problems.html
+/// 
+/// Copyright (C) 2010, 2011 by Dmitry Dzhus
+///
+/// Redistribution and use in source and binary forms, with or without
+/// modification, are permitted provided that the following conditions
+/// are met:
+///
+///    1. Redistributions of source code must retain the above
+///    copyright notice, this list of conditions and the following
+///    disclaimer.
+///
+///    2. Redistributions in binary form must reproduce the above
+///    copyright notice, this list of conditions and the following
+///    disclaimer in the documentation and/or other materials provided
+///    with the distribution.
+///
+///    3. The name of the author may not be used to endorse or promote
+///    products derived from this software without specific prior
+///    written permission.
+
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -203,6 +226,10 @@ public:
 
 typedef BinaryTree<frequency_t, word_list > word_tree;
 
+/// Trie class to effectively store words under numerical keys as
+/// given by cell phone keyboard mapping. Words can be queried from
+/// trie by keys using Trie::query. Whenever a word is queried, its
+/// frequency is increased by one except it's a punctuation mark.
 class Trie
 {
 private:
@@ -352,7 +379,9 @@ public:
         word_put = true;
         prev_punct = false;
     }
-    
+
+    /// Read SMS input line with digits, spaces and asterisk signs and
+    /// print out words selected.
     void read(const string &input)
     {
         for (string::const_iterator i = input.begin(); i != input.end(); i++)
@@ -387,6 +416,32 @@ public:
         put_pending();
     }
 };
+
+/// Read integer N for dictionary size. Then read N lines with words
+/// and initial frequencies. Then read input line with digits 1-9,
+/// asterisk signs and spaces and print out selected text.
+///
+/// Example input 1:
+/// 5
+/// ad 2
+/// be 1
+/// not 10
+/// or 5
+/// to 50
+/// 86 23* 67 668 86 231**
+///
+/// Output:
+/// to be or not to be?
+///
+/// Example input 2:
+/// 3
+/// act 1
+/// bat 1
+/// cat 1
+/// 228* 228** 228** 228**1
+///
+/// Output:
+/// bat cat act bat.
 
 int main(int argc, char* argv[])
 {

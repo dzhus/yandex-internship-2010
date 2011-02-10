@@ -1,3 +1,25 @@
+/// LCA algorithm.
+/// 
+/// Copyright (C) 2010, 2011 by Dmitry Dzhus
+///
+/// Redistribution and use in source and binary forms, with or without
+/// modification, are permitted provided that the following conditions
+/// are met:
+///
+///    1. Redistributions of source code must retain the above
+///    copyright notice, this list of conditions and the following
+///    disclaimer.
+///
+///    2. Redistributions in binary form must reproduce the above
+///    copyright notice, this list of conditions and the following
+///    disclaimer in the documentation and/or other materials provided
+///    with the distribution.
+///
+///    3. The name of the author may not be used to endorse or promote
+///    products derived from this software without specific prior
+///    written permission.
+
+
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -21,6 +43,10 @@ template <class M> void matrix_resize(M* m, small_int rows, small_int cols)
         i->resize(cols, 0);
 }
 
+/// Tree class
+///
+/// Implements LCA algorithm to calculate distance between two nodes
+/// using Tree::find_distance() method.
 class Tree
 {
     typedef vector < vector <small_int> > anc_t;
@@ -83,7 +109,7 @@ private:
         out_times[v] = out_timer++;
     }
 
-    small_int lac_proc(small_int v1, small_int v2)
+    small_int lca_proc(small_int v1, small_int v2)
     {
         for (int j = levels - 1; j >= 0; j--)
             if (!is_ancestor(anc[v1][j], v2))
@@ -132,7 +158,7 @@ public:
         adj[v2].push_back(v1);
     }
 
-    void lac_preprocess(void)
+    void lca_preprocess(void)
     {
         in_timer = out_timer = 0;
         dfs_traverse(0);
@@ -145,8 +171,8 @@ public:
             (out_times[v1] > out_times[v2]);
     }
 
-    /// Find LAC of two vertices
-    small_int find_lac(small_int v1, small_int v2)
+    /// Find LCA of two vertices
+    small_int find_lca(small_int v1, small_int v2)
     {
         small_int v;
         if (is_ancestor(v1, v2))
@@ -154,22 +180,46 @@ public:
         else if (is_ancestor(v2, v1))
             v = v2;
         else 
-            v = lac_proc(v1, v2);
+            v = lca_proc(v1, v2);
         return v + 1;
     }
 
     /// Find distance between two vertices
     distance_int find_distance(small_int v1, small_int v2)
     {
-        small_int lac = find_lac(v1, v2) - 1;
+        small_int lca = find_lca(v1, v2) - 1;
         /// @internal We can save one call if we calculate one of
-        /// distance while finding LAC.
+        /// distance while finding LCA.
         return (v1 == v2) ? 0 : 
-            dist_to_ancestor(v1, lac) +
-            dist_to_ancestor(v2, lac);
+            dist_to_ancestor(v1, lca) +
+            dist_to_ancestor(v2, lca);
     }
  
 };
+
+/// Read one integer N for node count. Then read N-1 integer 3-tuples
+/// for edges: START END DISTANCE. Then read integer M and eventually
+/// read M integer 2-tuples for pairs of nodes for which distance is
+/// calculated and printed.
+///
+/// Example input:
+/// 6
+/// 1 2 7
+/// 2 3 3
+/// 2 4 6
+/// 4 5 3
+/// 5 6 1
+/// 4
+/// 1 6
+/// 1 3
+/// 6 3
+/// 2 5
+///
+/// Output:
+/// 17
+/// 10
+/// 13
+/// 9
 
 int main(int argc, char* argv[])
 {
@@ -184,7 +234,7 @@ int main(int argc, char* argv[])
         tree.add_edge(a - 1, b - 1, length);
     }
 
-    tree.lac_preprocess();
+    tree.lca_preprocess();
     cin >> pairs;
     
     for (small_int i = 0; i < pairs; i++)
